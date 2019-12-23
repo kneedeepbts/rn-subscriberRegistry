@@ -43,6 +43,10 @@
 #include <time.h>
 #include <unistd.h>
 
+/* Adding in some libraries */
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+
 #include <Logger.h>
 #include <Globals.h>
 #include <NodeManager.h>
@@ -302,6 +306,12 @@ char *processBuffer(char *buffer)
 int
 main(int argc, char **argv)
 {
+    /*** Setup Logger ***/
+    // create color multi threaded logger
+    auto console = spdlog::stdout_color_mt("console");
+    auto err_logger = spdlog::stderr_color_mt("stderr");
+    spdlog::get("console")->info("loggers can be retrieved from a global registry using the spdlog::get(logger_name)");
+
 	// TODO: Properly parse and handle any arguments
 	if (argc > 1) {
 		for (int argi = 0; argi < argc; argi++) {
