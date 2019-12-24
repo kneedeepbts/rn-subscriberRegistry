@@ -40,13 +40,14 @@
 using namespace std;
 
 
-extern ConfigurationTable gConfig;
+//extern ConfigurationTable gConfig;
 
 // just using this for the database access
 extern SubscriberRegistry gSubscriberRegistry;
 
+#define CONFIG_A3A8_BIN_LOCATION "/OpenBTS/comp128"
 
-
+/*
 ConfigurationKeyMap getConfigurationKeys()
 {
 	ConfigurationKeyMap map;
@@ -87,6 +88,7 @@ ConfigurationKeyMap getConfigurationKeys()
 
 	return map;
 }
+*/
 
 string soGenerateIt()
 {
@@ -203,7 +205,8 @@ bool authenticate(string imsi, string randx, string sres, string *kc)
 		string a3a8 = gSubscriberRegistry.imsiGet(imsi, "a3_a8");
 		if (a3a8.length() == 0) {
 			// config value is default
-			a3a8 = gConfig.getStr("SubscriberRegistry.A3A8");
+			//a3a8 = gConfig.getStr("SubscriberRegistry.A3A8");
+			a3a8 = CONFIG_A3A8_BIN_LOCATION
 		}
 		os << a3a8 << " 0x" << ki << " 0x" << randx;
 		// must not put ki into the log
