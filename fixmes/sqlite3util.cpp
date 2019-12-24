@@ -25,7 +25,6 @@
 
 
 #include "sqlite3util.h"
-#include "Logger.h"
 
 #include <string.h>
 #include <unistd.h>
@@ -33,10 +32,12 @@
 
 #include <string>
 #include <vector>
+
+/* Adding in some libraries */
+// Should this be moved to the .cpp file?
+#include "spdlog/spdlog.h"
+
 using namespace std;
-
-
-// (pat) You must not call LOG() from this file because it causes infinite recursion through gGetLoggingLevel and ConfigurationTable::lookup
 
 
 // Wrappers to sqlite operations.
@@ -59,7 +60,8 @@ int sqlite3_prepare_statement(sqlite3* DB, sqlite3_stmt **stmt, const char* quer
 	}
         if (src) {
 				// (pat) You must not call LOG() from this file because it causes infinite recursion through gGetLoggingLevel and ConfigurationTable::lookup
-                _LOG(ERR)<< format("sqlite3_prepare_v2 failed code=%u for \"%s\": %s\n",src,query,sqlite3_errmsg(DB));
+                //_LOG(ERR)<< format("sqlite3_prepare_v2 failed code=%u for \"%s\": %s\n",src,query,sqlite3_errmsg(DB));
+                spdlog::error("sqlite3_prepare_v2 failed code = {} for \"{}\": {}\n", src, query, sqlite3_errmsg(DB));
 
 				// (pat) And I quote from sql documentation: "Invoking sqlite3_finalize() on a NULL pointer is a harmless no-op."
                 sqlite3_finalize(*stmt);
@@ -80,7 +82,8 @@ int sqlite3_run_query(sqlite3* DB, sqlite3_stmt *stmt, unsigned retries)
         }
 	if ((src!=SQLITE_DONE) && (src!=SQLITE_ROW)) {
 		// (pat) You must not call LOG() from this file because it causes infinite recursion through gGetLoggingLevel and ConfigurationTable::lookup
-		_LOG(ERR) << format("sqlite3_run_query failed code=%u for: %s: %s\n", src, sqlite3_sql(stmt), sqlite3_errmsg(DB));
+		//_LOG(ERR) << format("sqlite3_run_query failed code=%u for: %s: %s\n", src, sqlite3_sql(stmt), sqlite3_errmsg(DB));
+		spdlog::error("sqlite3_run_query failed code={} for: {}: {}", src, sqlite3_sql(stmt), sqlite3_errmsg(DB));
 	}
 	return src;
 }
@@ -367,7 +370,8 @@ bool sqlite_set_attr(sqlite3*db,const char *attr_name,const char*attr_value)
 		//        However, sqlite3_db_filename is not available in Ubuntu 12.04. Removing dependence for now.
 		//const char *fn = sqlite3_db_filename(db,"main");
 		// (pat) You must not call LOG() from this file because it causes infinite recursion through gGetLoggingLevel and ConfigurationTable::lookup
-		_LOG(WARNING) << "Could not create ATTR_TABLE in database file ";// <<(fn?fn:"");
+		//_LOG(WARNING) << "Could not create ATTR_TABLE in database file ";// <<(fn?fn:"");
+		spdlog::warn("Could not create ATTR_TABLE in database file");
 		return false;
 	}
 	char query[100];
@@ -377,7 +381,8 @@ bool sqlite_set_attr(sqlite3*db,const char *attr_name,const char*attr_value)
 		//        However, sqlite3_db_filename is not available in Ubuntu 12.04. Removing dependence for now.
 		//const char *fn = sqlite3_db_filename(db,"main");
 		// (pat) You must not call LOG() from this file because it causes infinite recursion through gGetLoggingLevel and ConfigurationTable::lookup
-		_LOG(WARNING) << "Could not set attribute: "<<attr_name<<"="<<attr_value <<" in database ";//<<(fn?fn:"");
+		//_LOG(WARNING) << "Could not set attribute: "<<attr_name<<"="<<attr_value <<" in database ";//<<(fn?fn:"");
+		spdlog::warn("Could not set attribute: {} = {} in database ", attr_name, attr_value);
 		return false;
 	}
 	return true;
