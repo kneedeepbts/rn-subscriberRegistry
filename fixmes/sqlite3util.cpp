@@ -33,6 +33,8 @@
 #include <string>
 #include <vector>
 
+#include "Utils.h"
+
 /* Adding in some libraries */
 // Should this be moved to the .cpp file?
 #include "spdlog/spdlog.h"
