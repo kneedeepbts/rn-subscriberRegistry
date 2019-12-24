@@ -82,7 +82,6 @@ AC_CONFIG_FILES([\
     config/Makefile \
     CommonLibs/Makefile \
     Globals/Makefile \
-    NodeManager/Makefile \
 ])
 
 AC_OUTPUT
