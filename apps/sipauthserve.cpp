@@ -49,8 +49,8 @@
 
 //#include <Logger.h>
 #include <Globals.h>
-#include <NodeManager.h>
-#include <JSONDB.h>
+//#include <NodeManager.h>
+//#include <JSONDB.h>
 #include "servershare.h"
 #include "SubscriberRegistry.h"
 
@@ -65,27 +65,27 @@ int my_udp_port;
 SubscriberRegistry gSubscriberRegistry;
 
 /** The remote node manager. */ 
-NodeManager gNodeManager;
+//NodeManager gNodeManager;
 
 /** The JSON<->DB interface. */ 
-JSONDB gJSONDB;
+//JSONDB gJSONDB;
 
 /** Application specific NodeManager logic for handling requests. */
-JsonBox::Object nmHandler(JsonBox::Object& request)
-{ 
-	JsonBox::Object response;
-	std::string command = request["command"].getString();
-	std::string action = request["action"].getString();
+//JsonBox::Object nmHandler(JsonBox::Object& request)
+//{ 
+//	JsonBox::Object response;
+//	std::string command = request["command"].getString();
+//	std::string action = request["action"].getString();
 
-	if (command.compare("subscribers") == 0) {
-		request["table"] = JsonBox::Value("subscribers");
-		response = gJSONDB.query(request);
-	} else {
-		response["code"] = JsonBox::Value(501);
-	}
-
-	return response;
-}
+//	if (command.compare("subscribers") == 0) {
+//		request["table"] = JsonBox::Value("subscribers");
+//		response = gJSONDB.query(request);
+//	} else {
+//		response["code"] = JsonBox::Value(501);
+//	}
+//
+//	return response;
+//}
 
 void prettyPrint(const char *label, osip_message_t *sip)
 {
@@ -362,9 +362,9 @@ main(int argc, char **argv)
 	gSubscriberRegistry.init();
 	spdlog::info("SubscriberRegistry initialized");
 	
-	gNodeManager.setAppLogicHandler(&nmHandler);
-	gNodeManager.start(45064);
-	spdlog::info("NodeManager started");
+	//gNodeManager.setAppLogicHandler(&nmHandler);
+	//gNodeManager.start(45064);
+	//spdlog::info("NodeManager started");
 
 	// init osip lib
 	osip_t *osip;
