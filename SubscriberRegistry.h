@@ -36,6 +36,7 @@
 #include "sqlite3.h"
 
 /* Adding in some libraries */
+// Should this be moved to the .cpp file?
 #include "spdlog/spdlog.h"
 
 using namespace std;

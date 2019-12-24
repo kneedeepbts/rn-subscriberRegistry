@@ -34,7 +34,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm> // for sort()
-#include <Configuration.h>
+//#include <Configuration.h>
 
 //extern ConfigurationTable gConfig;
 
