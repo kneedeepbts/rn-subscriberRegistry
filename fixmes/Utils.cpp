@@ -38,6 +38,7 @@ struct stringCaseInsensitive : public string {
 // (pat) This definition must be in the .cpp file to anchor the class vtable.
 //RefCntBase::~RefCntBase() { LOG(DEBUG) << typeid(this).name(); }
 
+/*
 int RefCntBase::decRefCnt() const
 {
 	int saveRefCnt;		// Passes the refcnt out of the locked block.
@@ -57,6 +58,9 @@ int RefCntBase::decRefCnt() const
 	}
 	return saveRefCnt;
 }
+*/
+
+/*
 void RefCntBase::incRefCnt() const
 {
 	ScopedLock lock(mRefMutex);
@@ -65,19 +69,24 @@ void RefCntBase::incRefCnt() const
 	assert(mRefCnt >= 0);
 	mRefCnt++;
 }
+*/
 
-
+/*
 MemStats gMemStats;
 int gMemLeakDebug = 0;
 static Mutex memChkLock;
+*/
 
+/*
 MemStats::MemStats()
 {
 	memset(mMemNow,0,sizeof(mMemNow));
 	memset(mMemTotal,0,sizeof(mMemTotal));
 	memset(mMemName,0,sizeof(mMemName));
 }
+*/
 
+/*
 void MemStats::text(ostream &os)
 {
 	os << "Structs current total:\n";
@@ -85,20 +94,24 @@ void MemStats::text(ostream &os)
 		os << "\t" << (mMemName[i] ? mMemName[i] : "unknown") << " " << mMemNow[i] << " " << mMemTotal[i] << "\n";
 	}
 }
+*/
 
+/*
 void MemStats::memChkNew(MemoryNames memIndex, const char *id)
 {
-	/*cout << "new " #type "\n";*/
+	//cout << "new " #type "\n";
 	ScopedLock lock(memChkLock);
 	mMemNow[memIndex]++;
 	mMemTotal[memIndex]++;
 	mMemName[memIndex] = id;
 }
+*/
 
+/*
 void MemStats::memChkDel(MemoryNames memIndex, const char *id)
 {
 	ScopedLock lock(memChkLock);
-	/*cout << "del " #type "\n";*/
+	//cout << "del " #type "\n";
 	mMemNow[memIndex]--;
 	if (gMemLeakDebug && mMemNow[memIndex] < 0) {
 		// (pat) This message can happen for some classes because the decrement above is not mutex protected;
@@ -108,6 +121,7 @@ void MemStats::memChkDel(MemoryNames memIndex, const char *id)
 		//mMemNow[memIndex] += 100;	// Prevent another message for a while.
 	}
 }
+*/
 
 ostream& operator<<(std::ostream& os, std::ostringstream& ss)
 {

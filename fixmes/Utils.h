@@ -24,6 +24,8 @@
 #include <math.h>		// for sqrtf
 #include <typeinfo>
 //#include "Logger.h"
+#include <assert.h>
+#include <sstream>
 
 
 namespace Utils {
@@ -199,6 +201,7 @@ extern string uintToString(uint32_t x);
 //template <class Type> class RefCntPointer;
 // The class is created with a RefCnt of 0.  The caller may assign the constructed result to a pointer
 // of type RefCntPointer.  If so, then when the last RefCntPointer is freed, this struct is too.
+/*
 class RefCntBase {
 	template <class Type> friend class RefCntPointer;
 	mutable Mutex mRefMutex;
@@ -219,6 +222,7 @@ class RefCntBase {
 	RefCntBase() : mRefCnt(0) {}
 	int getRefCnt() const { return mRefCnt; }
 };
+*/
 
 // This is basically the same as a C++11 shared_ptr, but we cannot use C++ 11 yet.
 // The basic idea is that once you put an object into a RefCntPointer, then destruction of that
@@ -233,6 +237,7 @@ class RefCntBase {
 // ... ptrToFoo->...	// Normal code using ptrToFoo as a (SomeDescendentOfRefCntBase*)
 // ptrToFoo = 0;		// release pointer and decrement reference count of foo.
 // ptrToFoo.free();		// A better way to release it.
+/*
 template<class Type>	// Type must be a descendent of RefCntBase.
 class RefCntPointer {
 	Type *rcPointer;
@@ -277,6 +282,7 @@ class RefCntPointer {
 	}
 	bool isNULL() const { return self() == NULL; }
 };
+*/
 
 extern string firstlines(string msgstr, int n=2);
 
