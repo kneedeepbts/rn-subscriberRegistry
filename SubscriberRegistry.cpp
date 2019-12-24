@@ -256,6 +256,7 @@ int SubscriberRegistry::init()
 	return 0;
 }
 
+/*
 string SubscriberRegistry::getResultsAsString(string query)
 {
 	sqlite3_stmt *stmt;
@@ -311,6 +312,7 @@ string SubscriberRegistry::getResultsAsString(string query)
 
 	return s.str();
 }
+*/
 
 vector<string> SubscriberRegistry::getTableColumns(string tableName)
 {
