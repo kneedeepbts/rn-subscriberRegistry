@@ -28,12 +28,15 @@
 
 #include <map>
 #include <stdlib.h>
-#include <Logger.h>
+//#include <Logger.h>
 #include <Timeval.h>
 #include <Threads.h>
 #include <map>
 #include <string>
 #include "sqlite3.h"
+
+/* Adding in some libraries */
+#include "spdlog/spdlog.h"
 
 using namespace std;
 
