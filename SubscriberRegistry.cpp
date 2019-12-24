@@ -36,7 +36,7 @@
 #include <algorithm> // for sort()
 #include <Configuration.h>
 
-extern ConfigurationTable gConfig;
+//extern ConfigurationTable gConfig;
 
 
 using namespace std;
@@ -168,9 +168,13 @@ static const char* createMEMSBTable = {
     ")"
 };
 
+#define CONFIG_SUBSCRIBER_REGISTRY_LOCATION "/var/lib/asterisk/sqlite3dir/sqlite3.db"
+#define CONFIG_SQL_NUM_RETRIES 3
+
 int SubscriberRegistry::init()
 {
-	string ldb = gConfig.getStr("SubscriberRegistry.db");
+	//string ldb = gConfig.getStr("SubscriberRegistry.db");
+	string ldb = CONFIG_SUBSCRIBER_REGISTRY_LOCATION;
 	size_t p = ldb.find_last_of('/');
 	if (p == string::npos) {
 		LOG(EMERG) << "SubscriberRegistry.db not in a directory?";
@@ -184,7 +188,8 @@ int SubscriberRegistry::init()
 		mDB = NULL;
 		return 1;
 	}
-	mNumSQLTries=gConfig.getNum("Control.NumSQLTries"); 
+	//mNumSQLTries=gConfig.getNum("Control.NumSQLTries");
+	mNumSQLTries = CONFIG_SQL_NUM_RETRIES;
 	int rc = sqlite3_open(ldb.c_str(),&mDB);
 	if (rc) {
 		LOG(EMERG) << "Cannot open SubscriberRegistry database: " << ldb << " error: " << sqlite3_errmsg(mDB);
