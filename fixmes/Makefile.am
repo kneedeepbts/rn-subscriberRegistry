@@ -32,26 +32,9 @@ noinst_LTLIBRARIES = libfixmes.la
 
 libfixmes_la_CXXFLAGS = $(AM_CXXFLAGS) -O3 -lsqlite3
 libfixmes_la_SOURCES = \
-	sqlite3util.cpp
-
-#noinst_PROGRAMS = \
-#	LockTest \
-#	UtilsTest \
-#	ThreadTest \
-#	BitVectorTest \
-#	InterthreadTest \
-#	SelfDetectTest \
-#	UnixSignalTest \
-#	SocketsTest \
-#	TimevalTest \
-#	RegexpTest \
-#	VectorTest \
-#	ConfigurationTest \
-#	LogTest \
-#	URLEncodeTest \
-#	F16Test
-
-#	ReportingTest 
+	sqlite3util.cpp \
+	Utils.cpp
 
 noinst_HEADERS = \
-	sqlite3util.h
+	sqlite3util.h \
+	Utils.h
