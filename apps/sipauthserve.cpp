@@ -342,8 +342,11 @@ main(int argc, char **argv)
 	srand ( time(NULL) + (int)getpid() );
 	my_udp_port = gConfig.getNum("SubscriberRegistry.Port");
 	gSubscriberRegistry.init();
+	spdlog::info("SubscriberRegistry initialized");
+	
 	gNodeManager.setAppLogicHandler(&nmHandler);
 	gNodeManager.start(45064);
+	spdlog::info("NodeManager started");
 
 	// init osip lib
 	osip_t *osip;
@@ -367,7 +370,8 @@ main(int argc, char **argv)
 		exit(1);
 	}
 
-	LOG(NOTICE) << "binding on port " << my_udp_port;
+	//LOG(NOTICE) << "binding on port " << my_udp_port;
+	spdlog::info("Binding on port {}", my_udp_port);
 
 	while (true) {
 		gConfig.purge();
