@@ -80,7 +80,7 @@ AC_CONFIG_FILES([\
     Makefile \
     apps/Makefile \
     config/Makefile \
-    CommonLibs/Makefile \
+    fixmes/Makefile \
     Globals/Makefile \
 ])
 

@@ -36,8 +36,8 @@ noinst_HEADERS = \
 # Order must be preserved
 SUBDIRS = \
 	config \
-	CommonLibs \
 	Globals \
+	fixmes \
 	apps
 
 FORCE:
