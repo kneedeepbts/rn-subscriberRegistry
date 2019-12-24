@@ -22,14 +22,14 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include <Configuration.h>
+//#include <Configuration.h>
 
 
 /**
 	Just about everything goes into the configuration table.
 	This should be defined in the main body of the top-level application.
 */
-extern ConfigurationTable gConfig;
+//extern ConfigurationTable gConfig;
 
 /** The version string. */
 extern const char *gVersionString;
