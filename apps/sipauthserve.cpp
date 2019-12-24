@@ -47,7 +47,7 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
-#include <Logger.h>
+//#include <Logger.h>
 #include <Globals.h>
 #include <NodeManager.h>
 #include <JSONDB.h>
@@ -57,7 +57,7 @@
 using namespace std;
 
 ConfigurationTable gConfig("/etc/OpenBTS/sipauthserve.db", "sipauthserve", getConfigurationKeys());
-Log dummy("sipauthserve", gConfig.getStr("Log.Level").c_str(), LOG_LOCAL7);
+//Log dummy("sipauthserve", gConfig.getStr("Log.Level").c_str(), LOG_LOCAL7);
 
 int my_udp_port;
 
@@ -93,9 +93,11 @@ void prettyPrint(const char *label, osip_message_t *sip)
 	size_t length=0;
 	int i = osip_message_to_str(sip, &dest, &length);
 	if (i!=0) {
-		LOG(ERR) << "cannot get printable message";
+		//LOG(ERR) << "cannot get printable message";
+		spdlog::error("cannot get printable message");
 	} else {
-		LOG(INFO) << label << ":\n" << dest;
+		//LOG(INFO) << label << ":\n" << dest;
+		spdlog::info("{}: {}", label, dest);
 		osip_free(dest);
 	}
 }
@@ -105,7 +107,8 @@ string imsiFromSip(osip_message_t *sip)
 	char *dest;
 	osip_uri_t *fromUri = osip_from_get_url(sip->from);
 	if (!fromUri) {
-		LOG(ERR) << "osip_from_get_url problem";
+		//(ERR) << "osip_from_get_url problem";
+		spdlog::error("osip_from_get_url problem");
 		return "";
 	}
 	osip_uri_to_str(fromUri, &dest);
@@ -119,7 +122,8 @@ string imsiToSip(osip_message_t *sip)
 	char *dest;
 	osip_uri_t *toUri = osip_to_get_url(sip->to);
 	if (!toUri) {
-		LOG(ERR) << "osip_to_get_url problem";
+		//LOG(ERR) << "osip_to_get_url problem";
+		spdlog::error("osip_to_get_url problem");
 		return "";
 	}
 	osip_uri_to_str(toUri, &dest);
@@ -162,13 +166,15 @@ char *processBuffer(char *buffer)
 	osip_message_t *sip;
 	i=osip_message_init(&sip);
 	if (i!=0) {
-		LOG(ERR) << "cannot allocate";
+		//LOG(ERR) << "cannot allocate";
+		spdlog::error("cannot allocate");
 		osip_message_free(sip);
 		return NULL;
 	}
 	i=osip_message_parse(sip, buffer, strlen(buffer));
 	if (i!=0) {
-		LOG(ERR) << "cannot parse sip message";
+		//LOG(ERR) << "cannot parse sip message";
+		spdlog::error("cannot parse sip message");
 		osip_message_free(sip);
 		return NULL;
 	}
@@ -199,14 +205,16 @@ char *processBuffer(char *buffer)
 	string imsiTo = imsiClean(imsiToSip(sip));
 	if ((imsi == "EXIT") && (imsiTo == "EXIT")) exit(0); // for testing only
 	if (!imsiFound(imsi)) {
-		LOG(NOTICE) << "imsi unknown";
+		//LOG(NOTICE) << "imsi unknown";
+		spdlog::warn("imsi unknown");
 		// imsi problem => 404 IMSI Not Found
 		osip_message_set_status_code (response, 404);
 		osip_message_set_reason_phrase (response, osip_strdup("IMSI Not Found"));
 	} else if (gConfig.defines("SubscriberRegistry.IgnoreAuthentication")) {
                 osip_message_set_status_code (response, 200);
                 osip_message_set_reason_phrase (response, osip_strdup("OK"));
-                LOG(INFO) << "success, imsi " << imsi << " registering for IP address " << remote_host;
+                //LOG(INFO) << "success, imsi " << imsi << " registering for IP address " << remote_host;
+                spdlog::info("success, imsi {} registering for IP address {}", imsi, remote_host);
                 gSubscriberRegistry.imsiSet(imsi,"ipaddr", remote_host, "port", remote_port);
 	} else {
 		// look for rand and sres in Authorization header (assume imsi same as in from)
@@ -231,11 +239,14 @@ char *processBuffer(char *buffer)
 			// FIXME -- These loops should use strspn instead.
 			while(isalnum(SRES[i])) { i++; }
 			SRES[i] = '\0';
-			LOG(INFO) << "rand = /" << RAND << "/";
-			LOG(INFO) << "sres = /" << SRES << "/";
+			//LOG(INFO) << "rand = /" << RAND << "/";
+			spdlog::info("rand = /{}/", RAND);
+			//LOG(INFO) << "sres = /" << SRES << "/";
+			spdlog::info("sres = /{}/", SRES);
 		}
 		if (!RAND || !SRES) {
-			LOG(NOTICE) << "imsi " << imsi << " known, 1st register";
+			//LOG(NOTICE) << "imsi " << imsi << " known, 1st register";
+			spdlog::warn("imsi {} known, 1st register", imsi);
 			// no rand and sres => 401 Unauthorized
 			osip_message_set_status_code (response, 401);
 			osip_message_set_reason_phrase (response, osip_strdup("Unauthorized"));
@@ -249,11 +260,15 @@ char *processBuffer(char *buffer)
 			string randz = generateRand(imsi);
 			osip_www_authenticate_set_nonce(auth, osip_strdup(randz.c_str()));
 			i = osip_list_add (&response->www_authenticates, auth, -1);
-			if (i < 0) LOG(ERR) << "problem adding www_authenticate";
+			if (i < 0) {
+			    //LOG(ERR) << "problem adding www_authenticate";
+			    spdlog::error("problem adding www_authenticate");
+			}
 		} else {
 			string kc;
 			bool sres_good = authenticate(imsi, RAND, SRES, &kc);
-			LOG(INFO) << "imsi " << imsi << " known, 2nd register, good = " << sres_good;
+			//LOG(INFO) << "imsi " << imsi << " known, 2nd register, good = " << sres_good;
+			spdlog::info("imsi {} known, 2nd register, good = {}", imsi, sres_good);
 			if (sres_good) {
 				// sres matches rand => 200 OK
 				osip_message_set_status_code (response, 200);
@@ -263,7 +278,10 @@ char *processBuffer(char *buffer)
 					osip_authentication_info_init(&auth);
 					osip_authentication_info_set_cnonce(auth, osip_strdup(kc.c_str()));
 					i = osip_list_add (&response->authentication_infos, auth, -1);
-					if (i < 0) LOG(ERR) << "problem adding authentication_infos";
+					if (i < 0) {
+					    //LOG(ERR) << "problem adding authentication_infos";
+					    spdlog::error("problem adding authentication_infos");
+					}
 				}
 				// (pat 9-2013) Add the caller id.
 				static string calleridstr("callerid");
@@ -276,7 +294,8 @@ char *processBuffer(char *buffer)
 					osip_message_set_header(response,"P-Associated-URI",buf);
 				}
 				// And register it.
-				LOG(INFO) << "success, registering for IP address " << remote_host;
+				//LOG(INFO) << "success, registering for IP address " << remote_host;
+				spdlog::info("success, registering for IP address {}", remote_host);
 				gSubscriberRegistry.imsiSet(imsi,"ipaddr", remote_host, "port", remote_port);
 			} else {
 				// sres does not match rand => 401 Unauthorized
@@ -291,7 +310,8 @@ char *processBuffer(char *buffer)
 	char *dest;
 	int ii = osip_message_to_str(response, &dest, &length);
 	if (ii != 0) {
-		LOG(ERR) << "cannot get printable message";
+		//LOG(ERR) << "cannot get printable message";
+		spdlog::error("cannot get printable message");
 	}
 
 	osip_message_free(sip);
@@ -309,8 +329,6 @@ main(int argc, char **argv)
     /*** Setup Logger ***/
     // create color multi threaded logger
     auto console_logger = spdlog::stdout_color_mt("console");
-    //auto err_logger = spdlog::stderr_color_mt("stderr");
-    //spdlog::get("console_logger")->info("loggers can be retrieved from a global registry using the spdlog::get(logger_name)");
     spdlog::set_default_logger(console_logger);
 
 	// TODO: Properly parse and handle any arguments
@@ -352,12 +370,14 @@ main(int argc, char **argv)
 	osip_t *osip;
 	int i=osip_init(&osip);
 	if (i!=0) {
-		LOG(ALERT) << "cannot init sip lib";
+		//LOG(ALERT) << "cannot init sip lib";
+		spdlog::critical("cannot init sip lib");
 		exit(1);
 	}
 
 	if ((aSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
-		LOG(ALERT) << "can't initialize socket";
+		//LOG(ALERT) << "can't initialize socket";
+		spdlog::critical("can't initialize socket");
 		exit(1);
 	}
 
@@ -366,23 +386,26 @@ main(int argc, char **argv)
 	si_me.sin_port = htons(my_udp_port);
 	si_me.sin_addr.s_addr = htonl(INADDR_ANY);
 	if (bind(aSocket, (sockaddr*)&si_me, sizeof(si_me)) == -1) {
-		LOG(ALERT) << "can't bind socket on port " << my_udp_port;
+		//LOG(ALERT) << "can't bind socket on port " << my_udp_port;
+		spdlog::critical("can't bind socket on port {}", my_udp_port);
 		exit(1);
 	}
 
 	//LOG(NOTICE) << "binding on port " << my_udp_port;
-	spdlog::info("Binding on port {}", my_udp_port);
+	spdlog::warn("Binding on port {}", my_udp_port);
 
 	while (true) {
 		gConfig.purge();
 		socklen_t slen = sizeof(si_other);
 		memset(buf, 0, BUFLEN);
 		if (recvfrom(aSocket, buf, BUFLEN, 0, (sockaddr*)&si_other, &slen) == -1) {
-			LOG(ERR) << "recvfrom problem";
+			//LOG(ERR) << "recvfrom problem";
+			spdlog::error("recvfrom problem");
 			continue;
 		}
 
-		LOG(INFO) << " receiving " << buf;
+		//LOG(INFO) << " receiving " << buf;
+		spdlog::info("receiving: {}", buf);
 
 		char *dest = processBuffer(buf);
 		if (dest == NULL) {
@@ -390,7 +413,8 @@ main(int argc, char **argv)
 		}
 
 		if (sendto(aSocket, dest, strlen(dest), 0, (sockaddr*)&si_other, sizeof(si_other)) == -1) {
-			LOG(ERR) << "sendto problem";
+			//LOG(ERR) << "sendto problem";
+			spdlog::error("sendto problem");
 			continue;
 		}
 		osip_free(dest);
