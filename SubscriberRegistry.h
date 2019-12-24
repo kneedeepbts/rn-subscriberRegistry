@@ -34,6 +34,7 @@
 #include <map>
 #include <string>
 #include "sqlite3.h"
+#include "sqlite3util.h"
 
 /* Adding in some libraries */
 // Should this be moved to the .cpp file?
