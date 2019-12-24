@@ -33,10 +33,12 @@ noinst_LTLIBRARIES = libfixmes.la
 libfixmes_la_CXXFLAGS = $(AM_CXXFLAGS) -O3 -lsqlite3
 libfixmes_la_SOURCES = \
 	sqlite3util.cpp \
+	Threads.cpp \
 	Timeval.cpp \
 	Utils.cpp
 
 noinst_HEADERS = \
 	sqlite3util.h \
+	Threads.h \
 	Timeval.h \
 	Utils.h
