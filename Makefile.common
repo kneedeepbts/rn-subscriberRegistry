@@ -23,7 +23,7 @@
 # ACLOCAL_AMFLAGS = -I config
 
 AM_CPPFLAGS = $(STD_DEFINES_AND_INCLUDES)
-AM_CXXFLAGS := -Wall -pthread -ldl -DTIMESTAMP_ISO=`date +'"%Y-%m-%dT%H:%M:%S"'`
+AM_CXXFLAGS := -std=c++11 -Wall -pthread -ldl -DTIMESTAMP_ISO=`date +'"%Y-%m-%dT%H:%M:%S"'`
 
 REPOREV = -D'REPO_REV="$(shell ./$(top_builddir)/Globals/GrabRepoInfo.sh $(top_builddir))"'
 
@@ -32,6 +32,7 @@ GLOBALS_INCLUDEDIR = $(top_srcdir)/Globals
 NODEMANAGER_INCLUDEDIR = $(top_srcdir)/NodeManager
 JSONBOX_INCLUDEDIR = $(top_srcdir)/NodeManager/JsonBox-0.4.3/include
 JSONDB_INCLUDEDIR = $(top_srcdir)/NodeManager/JSONDB
+NORMAL_INCLUDEDIR = $(top_srcdir)/include
 
 STD_DEFINES_AND_INCLUDES = \
 	$(REPOREV) \
@@ -39,7 +40,8 @@ STD_DEFINES_AND_INCLUDES = \
 	-I$(GLOBALS_INCLUDEDIR) \
 	-I$(NODEMANAGER_INCLUDEDIR) \
 	-I$(JSONBOX_INCLUDEDIR) \
-	-I$(JSONDB_INCLUDEDIR)
+	-I$(JSONDB_INCLUDEDIR) \
+	-I$(NORMAL_INCLUDEDIR)
 
 # These macros are referenced in apps/Makefile.am, which must be changed in sync with these.
 COMMON_LA = $(top_builddir)/CommonLibs/libcommon.la
