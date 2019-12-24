@@ -24,8 +24,7 @@ DESTDIR :=
 
 ourlibs = \
 	$(GLOBALS_LA) \
-	$(COMMON_LA) \
-	$(NODEMANAGER_LA)
+	$(COMMON_LA)
 
 sbin_PROGRAMS = sipauthserve comp128
 bin_SCRIPTS = syslogextractor hexmapper 
@@ -34,8 +33,7 @@ conf_DATA = sipauthserve.example.sql
 
 sipauthserve_SOURCES =  sipauthserve.cpp \
 	../servershare.cpp \
-	../SubscriberRegistry.cpp \
-	../NodeManager/JSONDB/JSONDB.cpp
+	../SubscriberRegistry.cpp
 sipauthserve_LDADD = $(ourlibs) -losipparser2 -losip2
 
 comp128_SOURCES = comp128.c

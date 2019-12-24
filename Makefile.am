@@ -38,7 +38,6 @@ SUBDIRS = \
 	config \
 	CommonLibs \
 	Globals \
-	NodeManager \
 	apps
 
 FORCE:
