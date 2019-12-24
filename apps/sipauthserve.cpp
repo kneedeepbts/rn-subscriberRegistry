@@ -53,7 +53,7 @@
 
 using namespace std;
 
-ConfigurationTable gConfig("/etc/OpenBTS/sipauthserve.db", "sipauthserve", getConfigurationKeys());
+//ConfigurationTable gConfig("/etc/OpenBTS/sipauthserve.db", "sipauthserve", getConfigurationKeys());
 
 int my_udp_port;
 
@@ -127,6 +127,7 @@ string imsiClean(string imsi)
     return imsi;
 }
 
+#define CONFIG_IGNORE_AUTHENTICATION false
 
 char *processBuffer(char *buffer)
 {
@@ -177,7 +178,7 @@ char *processBuffer(char *buffer)
         // imsi problem => 404 IMSI Not Found
         osip_message_set_status_code (response, 404);
         osip_message_set_reason_phrase (response, osip_strdup("IMSI Not Found"));
-    } else if (gConfig.defines("SubscriberRegistry.IgnoreAuthentication")) {
+    } else if (CONFIG_IGNORE_AUTHENTICATION) {
                 osip_message_set_status_code (response, 200);
                 osip_message_set_reason_phrase (response, osip_strdup("OK"));
                 spdlog::info("success, imsi {} registering for IP address {}", imsi, remote_host);
@@ -280,6 +281,7 @@ char *processBuffer(char *buffer)
 
 
 #define BUFLEN 5000
+#define CONFIG_PORT 5064
 
 int
 main(int argc, char **argv)
@@ -296,12 +298,6 @@ main(int argc, char **argv)
                 !strcmp(argv[argi], "-v")) {
                 cout << gVersionString << endl;
             }
-            if (!strcmp(argv[argi], "--gensql")) {
-                cout << gConfig.getDefaultSQL(string(argv[0]), gVersionString) << endl;
-            }
-            if (!strcmp(argv[argi], "--gentex")) {
-                cout << gConfig.getTeX(string(argv[0]), gVersionString) << endl;
-            }
         }
 
         return 0;
@@ -315,7 +311,7 @@ main(int argc, char **argv)
     spdlog::warn("SipAuthServe Starting");
 
     srand ( time(NULL) + (int)getpid() );
-    my_udp_port = gConfig.getNum("SubscriberRegistry.Port");
+    my_udp_port = CONFIG_PORT; // This should come from a config file
     gSubscriberRegistry.init();
     spdlog::info("SubscriberRegistry initialized");
 
@@ -344,7 +340,7 @@ main(int argc, char **argv)
     spdlog::warn("Binding on port {}", my_udp_port);
 
     while (true) {
-        gConfig.purge();
+        //gConfig.purge();
         socklen_t slen = sizeof(si_other);
         memset(buf, 0, BUFLEN);
         if (recvfrom(aSocket, buf, BUFLEN, 0, (sockaddr*)&si_other, &slen) == -1) {
