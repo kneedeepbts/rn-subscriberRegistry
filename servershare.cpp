@@ -206,7 +206,7 @@ bool authenticate(string imsi, string randx, string sres, string *kc)
 		if (a3a8.length() == 0) {
 			// config value is default
 			//a3a8 = gConfig.getStr("SubscriberRegistry.A3A8");
-			a3a8 = CONFIG_A3A8_BIN_LOCATION
+			a3a8 = CONFIG_A3A8_BIN_LOCATION;
 		}
 		os << a3a8 << " 0x" << ki << " 0x" << randx;
 		// must not put ki into the log
