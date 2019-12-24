@@ -308,9 +308,10 @@ main(int argc, char **argv)
 {
     /*** Setup Logger ***/
     // create color multi threaded logger
-    auto console = spdlog::stdout_color_mt("console");
-    auto err_logger = spdlog::stderr_color_mt("stderr");
-    spdlog::get("console")->info("loggers can be retrieved from a global registry using the spdlog::get(logger_name)");
+    auto console_logger = spdlog::stdout_color_mt("console");
+    //auto err_logger = spdlog::stderr_color_mt("stderr");
+    //spdlog::get("console_logger")->info("loggers can be retrieved from a global registry using the spdlog::get(logger_name)");
+    spdlog::set_default_logger(console_logger);
 
 	// TODO: Properly parse and handle any arguments
 	if (argc > 1) {
@@ -335,7 +336,9 @@ main(int argc, char **argv)
 	int aSocket;
 	char buf[BUFLEN];
 
-	LOG(ALERT) << argv[0] << " (re)starting";
+	//LOG(ALERT) << argv[0] << " (re)starting";
+	spdlog::warn("SipAuthServe Starting");
+
 	srand ( time(NULL) + (int)getpid() );
 	my_udp_port = gConfig.getNum("SubscriberRegistry.Port");
 	gSubscriberRegistry.init();
