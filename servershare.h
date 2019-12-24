@@ -32,7 +32,7 @@ using namespace std;
 /**
 	Returns all valid configuration keys for the subscriber registry.
 */
-ConfigurationKeyMap getConfigurationKeys();
+//ConfigurationKeyMap getConfigurationKeys();
 
 /**
 	Generate a 128-bit random number.

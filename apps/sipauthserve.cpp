@@ -31,6 +31,7 @@
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <netinet/in.h>
 #include <osip2/osip.h>
 #include <osipparser2/osip_message.h>
