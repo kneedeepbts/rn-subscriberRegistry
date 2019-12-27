@@ -322,6 +322,7 @@ main(int argc, char **argv)
         console_sink->set_level(spdlog::level::from_str(log_level));
         //console_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
         auto console_logger = std::make_shared<spdlog::logger>("console_logger", console_sink);
+        console_logger->set_level(spdlog::level::from_str(log_level));
         spdlog::register_logger(console_logger);
         spdlog::set_default_logger(console_logger);
     }
