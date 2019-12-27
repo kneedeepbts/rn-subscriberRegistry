@@ -175,8 +175,11 @@ char *processBuffer(char *buffer)
     osip_message_set_method(response, NULL);
 
     string imsi = imsiClean(imsiFromSip(sip));
+    spdlog::debug("IMSI from: {}", imsi);
     string imsiTo = imsiClean(imsiToSip(sip));
-    if ((imsi == "EXIT") && (imsiTo == "EXIT")) exit(0); // for testing only
+    spdlog::debug("IMSI to: {}", imsiTo);
+    
+    //if ((imsi == "EXIT") && (imsiTo == "EXIT")) exit(0); // for testing only
     if (!imsiFound(imsi)) {
         spdlog::warn("imsi unknown");
         // imsi problem => 404 IMSI Not Found
