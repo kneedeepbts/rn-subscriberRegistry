@@ -161,6 +161,8 @@ char *processBuffer(char *buffer)
     osip_uri_t* contact_url = contact_header->url; 
     char *remote_host = contact_url->host;
     char *remote_port = contact_url->port;
+    spdlog::info("Remote host: {}", remote_host);
+    spdlog::info("Remote port: {}", remote_port);
 
     // return via
     ostringstream newvia;
