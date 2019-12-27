@@ -332,6 +332,7 @@ main(int argc, char **argv)
         file_sink->set_level(spdlog::level::from_str(log_level));
         //file_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
         auto file_logger = std::make_shared<spdlog::logger>("file_logger", file_sink);
+        file_logger->set_level(spdlog::level::from_str(log_level));
         spdlog::register_logger(file_logger);
         spdlog::set_default_logger(file_logger);
     }

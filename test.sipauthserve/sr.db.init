@@ -94,9 +94,9 @@ kc varchar(33) default '',
 primary key(id)
 );
 
-insert into sip_buddies (name,rand,sres,ki,kc) values ('IMSI12345678901231','','','known','');
-insert into sip_buddies (name,rand,sres,ki,kc) values ('IMSI12345678901232','','','','');
-insert into sip_buddies (name,rand,sres,ki,kc) values ('IMSI12345678901234','','','48091124c1155bd95c6f1860dc66ce92','');
-insert into sip_buddies (name,rand,sres,ki,kc) values ('IMSI12345678901235','','','','');
+insert into sip_buddies (username,rand,sres,ki,kc) values ('IMSI12345678901231','','','known','');
+insert into sip_buddies (username,rand,sres,ki,kc) values ('IMSI12345678901232','','','','');
+insert into sip_buddies (username,rand,sres,ki,kc) values ('IMSI12345678901234','','','48091124c1155bd95c6f1860dc66ce92','');
+insert into sip_buddies (username,rand,sres,ki,kc) values ('IMSI12345678901235','','','','');
 
 COMMIT;
