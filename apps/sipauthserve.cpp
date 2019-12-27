@@ -58,7 +58,7 @@ using namespace std;
 
 //ConfigurationTable gConfig("/etc/OpenBTS/sipauthserve.db", "sipauthserve", getConfigurationKeys());
 
-int my_udp_port;
+//int my_udp_port;
 
 // just using this for the database access
 SubscriberRegistry gSubscriberRegistry;
@@ -166,6 +166,7 @@ char *processBuffer(char *buffer)
     ostringstream newvia;
     // newvia << "SIP/2.0/UDP localhost:5063;branch=1;received=string_address@foo.bar";
     const char *my_ipaddress = "localhost";
+    const int my_udp_port = 5064;
     newvia << "SIP/2.0/UDP " << my_ipaddress << ":" << my_udp_port << ";branch=1;received="
         << "string_address@foo.bar"; // << my_network.string_addr((struct sockaddr *)netaddr, netaddrlen, false);
     osip_message_append_via(response, newvia.str().c_str());
@@ -284,11 +285,11 @@ char *processBuffer(char *buffer)
 
 
 #define BUFLEN 5000
-#define CONFIG_PORT 5064
 
 int
 main(int argc, char **argv)
 {
+    /*** Parse CLI Arguments ***/
     // TODO: Properly parse and handle any arguments
     if (argc > 1) {
         for (int argi = 0; argi < argc; argi++) {
@@ -304,12 +305,14 @@ main(int argc, char **argv)
     /*** Parse Config File ***/
     auto config = cpptoml::parse_file("/etc/OpenBTS/sipauthserve.conf"); // FIXME: Get this from a command line arg
     auto config_sipauthserve = config->get_table("sipauthserve");
+    auto cfg_port = *config_sipauthserve->get_as<int>("port");
+    auto cfg_ignore_auth = *config_sipauthserve->get_as<bool>("ignore_authentication");
     auto config_logging = config->get_table("logging");
-    //auto key1 = first->get_as<double>("key1");
-
-    /*** Setup Logger ***/
     auto log_level = *config_logging->get_as<std::string>("level");
     auto log_type = *config_logging->get_as<std::string>("type");
+    auto log_filename = *config_logging->get_as<std::string>("filename");
+
+    /*** Setup Logger ***/
     // create color console logger if enabled
     if(log_type == "console") {
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
@@ -320,9 +323,8 @@ main(int argc, char **argv)
         spdlog::set_default_logger(console_logger);
     }
     // create file logger if enabled
-    if(log_type == "file") {
-        auto file_name = *config_logging->get_as<std::string>("file");
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(file_name);
+    else if(log_type == "file") {
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_filename);
         file_sink->set_level(spdlog::level::from_str(log_level));
         //file_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
         auto file_logger = std::make_shared<spdlog::logger>("file_logger", file_sink);
@@ -341,7 +343,7 @@ main(int argc, char **argv)
     spdlog::warn("SipAuthServe Starting");
 
     srand ( time(NULL) + (int)getpid() );
-    my_udp_port = CONFIG_PORT; // This should come from a config file
+    //my_udp_port = CONFIG_PORT; // This should come from a config file
     gSubscriberRegistry.init();
     spdlog::info("SubscriberRegistry initialized");
 
@@ -360,14 +362,14 @@ main(int argc, char **argv)
 
     memset((char *) &si_me, 0, sizeof(si_me));
     si_me.sin_family = AF_INET;
-    si_me.sin_port = htons(my_udp_port);
+    si_me.sin_port = htons(cfg_port);
     si_me.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind(aSocket, (sockaddr*)&si_me, sizeof(si_me)) == -1) {
-        spdlog::critical("can't bind socket on port {}", my_udp_port);
+        spdlog::critical("can't bind socket on port {}", cfg_port);
         exit(1);
     }
 
-    spdlog::warn("Binding on port {}", my_udp_port);
+    spdlog::warn("Binding on port {}", cfg_port);
 
     while (true) {
         //gConfig.purge();
