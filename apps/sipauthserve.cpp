@@ -318,8 +318,10 @@ main(int argc, char **argv)
     }
     // create file logger if enabled
     if(config_logging->get_as<bool>("file")) {
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(config_logging->get_as<std::string>("file"), true);
-        file_sink->set_level(spdlog::level::from_str(config_logging->get_as<std::string>("file_level")));
+        auto file_name = config_logging->get_as<std::string>("file");
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(file_name, true);
+        auto file_level = config_logging->get_as<std::string>("file_level");
+        file_sink->set_level(spdlog::level::from_str(*file_level));
         //file_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
         auto file_logger = spdlog::logger("file_logger", {file_sink});
         if(config_logging->get_as<bool>("console")) {
