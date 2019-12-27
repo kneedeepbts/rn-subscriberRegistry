@@ -292,6 +292,8 @@ main(int argc, char **argv)
     auto console_logger = spdlog::stdout_color_mt("console");
     spdlog::set_default_logger(console_logger);
 
+    spdlog::warn("This is a verification of running version.");
+
     // TODO: Properly parse and handle any arguments
     if (argc > 1) {
         for (int argi = 0; argi < argc; argi++) {
