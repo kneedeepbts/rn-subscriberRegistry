@@ -309,7 +309,7 @@ main(int argc, char **argv)
 
     /*** Setup Logger ***/
     auto log_level = config_logging->get_as<std::string>("level");
-    auto log_type = config_logging->get_as<std::string>("type");
+    auto log_type = *config_logging->get_as<std::string>("type");
     // create color console logger if enabled
     if(log_type == "console") {
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
