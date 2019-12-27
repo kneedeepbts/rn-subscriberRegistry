@@ -308,34 +308,25 @@ main(int argc, char **argv)
     //auto key1 = first->get_as<double>("key1");
 
     /*** Setup Logger ***/
+    auto log_level = config_logging->get_as<std::string>("level");
     // create color console logger if enabled
-    if(config_logging->get_as<bool>("console")) {
+    if(config_logging->get_as<std::string>("type") == "console") {
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-        auto console_level = config_logging->get_as<std::string>("console_level");
-        console_sink->set_level(spdlog::level::from_str(*console_level));
+        console_sink->set_level(spdlog::level::from_str(*log_level));
         //console_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
         auto console_logger = std::make_shared<spdlog::logger>("console_logger", console_sink);
         spdlog::register_logger(console_logger);
         spdlog::set_default_logger(console_logger);
     }
     // create file logger if enabled
-    if(config_logging->get_as<bool>("file")) {
+    if(config_logging->get_as<std::string>("type") == "file") {
         auto file_name = config_logging->get_as<std::string>("file");
         auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(file_name);
-        auto file_level = config_logging->get_as<std::string>("file_level");
-        file_sink->set_level(spdlog::level::from_str(*file_level));
+        file_sink->set_level(spdlog::level::from_str(*log_level));
         //file_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
         auto file_logger = std::make_shared<spdlog::logger>("file_logger", file_sink);
         spdlog::register_logger(file_logger);
-        if(config_logging->get_as<bool>("console")) {
-            auto multi_logger = std::make_shared<spdlog::logger>("multi_logger", {console_sink, file_sink});
-            multi_logger.set_level(spdlog::level::debug);
-            spdlog::register_logger(multi_logger);
-            spdlog::set_default_logger(multi_logger);
-        }
-        else {
-            spdlog::set_default_logger(file_logger);
-        }
+        spdlog::set_default_logger(file_logger);
     }
     spdlog::warn("This is a verification of running version.");
 
