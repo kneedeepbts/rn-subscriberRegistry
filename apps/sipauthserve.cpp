@@ -335,6 +335,7 @@ main(int argc, char **argv)
         spdlog::set_default_logger(file_logger);
     }
     spdlog::warn("This is a verification of running version.");
+    spdlog::debug("debug mode is enabled");
 
 
 
