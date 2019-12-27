@@ -313,7 +313,7 @@ main(int argc, char **argv)
         auto console_level = config_logging->get_as<std::string>("console_level");
         console_sink->set_level(spdlog::level::from_str(*console_level));
         //console_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
-        auto console_logger = std::make_shared<spdlog::logger>("console_logger", {console_sink});
+        auto console_logger = std::make_shared<spdlog::logger>("console_logger", console_sink);
         spdlog::register_logger(console_logger);
         spdlog::set_default_logger(console_logger);
     }
@@ -324,10 +324,12 @@ main(int argc, char **argv)
         auto file_level = config_logging->get_as<std::string>("file_level");
         file_sink->set_level(spdlog::level::from_str(*file_level));
         //file_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
-        auto file_logger = spdlog::logger("file_logger", {file_sink});
+        auto file_logger = std::make_shared<spdlog::logger>("file_logger", file_sink);
+        spdlog::register_logger(file_logger);
         if(config_logging->get_as<bool>("console")) {
-            auto multi_logger = spdlog::logger("multi_logger", {console_sink, file_sink});
+            auto multi_logger = std::make_shared<spdlog::logger>("multi_logger", {console_sink, file_sink});
             multi_logger.set_level(spdlog::level::debug);
+            spdlog::register_logger(multi_logger);
             spdlog::set_default_logger(multi_logger);
         }
         else {
