@@ -334,7 +334,7 @@ main(int argc, char **argv)
         spdlog::register_logger(file_logger);
         spdlog::set_default_logger(file_logger);
     }
-    spdlog::warn("This is a verification of running version.");
+    spdlog::warn("Log level value from the config: {}", log_level);
     spdlog::debug("debug mode is enabled");
 
 
