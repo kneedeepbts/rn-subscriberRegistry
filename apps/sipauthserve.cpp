@@ -47,6 +47,7 @@
 /* Adding in some libraries */
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include "cpptoml.h"
 
 #include <Globals.h>
 #include "servershare.h"
@@ -287,13 +288,6 @@ char *processBuffer(char *buffer)
 int
 main(int argc, char **argv)
 {
-    /*** Setup Logger ***/
-    // create color multi threaded logger
-    auto console_logger = spdlog::stdout_color_mt("console");
-    spdlog::set_default_logger(console_logger);
-
-    spdlog::warn("This is a verification of running version.");
-
     // TODO: Properly parse and handle any arguments
     if (argc > 1) {
         for (int argi = 0; argi < argc; argi++) {
@@ -305,6 +299,40 @@ main(int argc, char **argv)
 
         return 0;
     }
+
+    /*** Parse Config File ***/
+    auto config = cpptoml::parse_file("/etc/OpenBTS/sipauthserve.conf"); // FIXME: Get this from a command line arg
+    auto config_sipauthserve = config->get_table("sipauthserve");
+    auto config_logging = config->get_table("logging");
+    //auto key1 = first->get_as<double>("key1");
+
+    /*** Setup Logger ***/
+    // create color console logger if enabled
+    if(config_logging->get_as<bool>("console")) {
+        auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        console_sink->set_level(spdlog::level::from_str(config_logging->get_as<std::string>("console_level")));
+        //console_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
+        auto console_logger = spdlog::logger("console_logger", {console_sink});
+        spdlog::set_default_logger(console_logger);
+    }
+    // create file logger if enabled
+    if(config_logging->get_as<bool>("file")) {
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(config_logging->get_as<std::string>("file"), true);
+        file_sink->set_level(spdlog::level::from_str(config_logging->get_as<std::string>("file_level")));
+        //file_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
+        auto file_logger = spdlog::logger("file_logger", {file_sink});
+        if(config_logging->get_as<bool>("console")) {
+            auto multi_logger = spdlog::logger("multi_logger", {console_sink, file_sink});
+            multi_logger.set_level(spdlog::level::debug);
+            spdlog::set_default_logger(multi_logger);
+        }
+        else {
+            spdlog::set_default_logger(file_logger);
+        }
+    }
+    spdlog::warn("This is a verification of running version.");
+
+
 
     sockaddr_in si_me;
     sockaddr_in si_other;
