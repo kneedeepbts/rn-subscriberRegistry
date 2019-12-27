@@ -47,6 +47,7 @@
 /* Adding in some libraries */
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/sinks/basic_file_sink.h"
 #include "cpptoml.h"
 
 #include <Globals.h>
@@ -320,7 +321,7 @@ main(int argc, char **argv)
     // create file logger if enabled
     if(config_logging->get_as<bool>("file")) {
         auto file_name = config_logging->get_as<std::string>("file");
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(file_name, true);
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(file_name);
         auto file_level = config_logging->get_as<std::string>("file_level");
         file_sink->set_level(spdlog::level::from_str(*file_level));
         //file_sink->set_pattern("[multi_sink_example] [%^%l%$] %v");
