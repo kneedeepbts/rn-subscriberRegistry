@@ -31,18 +31,20 @@ bin_SCRIPTS = syslogextractor hexmapper
 confdir = /etc/OpenBTS
 conf_DATA = sipauthserve.example.sql 
 
-sipauthserve_SOURCES =  sipauthserve.cpp \
-	../servershare.cpp \
-	../SubscriberRegistry.cpp
+sipauthserve_SOURCES = \
+	servershare.cpp \
+	SubscriberRegistry.cpp \
+    sipauthserve.cpp
+
 sipauthserve_LDADD = $(ourlibs) -losipparser2 -losip2
 
 comp128_SOURCES = comp128.c
 comp128_LDADD = $(ourlibs)
 
-sipauthserve.example.sql: sipauthserve
-	( ./sipauthserve --gensql > sipauthserve.example.sql || true )
+#sipauthserve.example.sql: sipauthserve
+#	( ./sipauthserve --gensql > sipauthserve.example.sql || true )
 
-tmp_DB = /tmp/SR.db
-TESTS = checkdb.sh
-CLEANFILES = $(tmp_DB)
+#tmp_DB = /tmp/SR.db
+#TESTS = checkdb.sh
+#CLEANFILES = $(tmp_DB)
 

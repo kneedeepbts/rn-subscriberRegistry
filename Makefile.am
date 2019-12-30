@@ -25,13 +25,13 @@ DESTDIR ?=
 # must be kept in sync with AC_CONFIG_MACRO_DIR in configure.ac
 ACLOCAL_AMFLAGS = -I config
 
-noinst_LTLIBRARIES = libSR.la
+#noinst_LTLIBRARIES = libSR.la
 
-libSR_la_SOURCES = \
-	SubscriberRegistry.cpp 
+#libSR_la_SOURCES = \
+#	SubscriberRegistry.cpp 
 
-noinst_HEADERS = \
-	SubscriberRegistry.h 
+#noinst_HEADERS = \
+#	SubscriberRegistry.h 
 
 # Order must be preserved
 SUBDIRS = \
