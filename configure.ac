@@ -30,7 +30,8 @@ AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([-Wno-portability])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([config])
-AC_CONFIG_SRCDIR([SubscriberRegistry.cpp])
+dnl AC_CONFIG_SRCDIR([SubscriberRegistry.cpp])
+AC_CONFIG_SRCDIR([apps])
 
 AM_PROG_AS
 AC_PROG_CXX
