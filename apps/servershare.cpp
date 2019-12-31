@@ -249,7 +249,7 @@ bool authenticate(string imsi, string randx, string sres, string *kc)
 		        std::array<uint8_t, 8> tmpKc = encryptor.getGsmKc();
 		        char tmpKcKc[17];
 		        sprintf(tmpKcKc, "%02X%02X%02X%02X%02X%02X%02X%02X", tmpKc[0], tmpKc[1], tmpKc[2], tmpKc[3], tmpKc[4], tmpKc[5], tmpKc[6], tmpKc[7]);
-		        tmpKcKc[17] = 0;
+		        tmpKcKc[16] = 0;
 		        *kc = tmpKcKc;
 		        return true;
 		    }
