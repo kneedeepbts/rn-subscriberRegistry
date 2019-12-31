@@ -225,11 +225,11 @@ bool authenticate(string imsi, string randx, string sres, string *kc)
 
 		    // Setup the keydata
 		    string opc = gSubscriberRegistry.imsiGet(imsi, "op_c");
-		    if (opc.length() == 16) {
+		    if (opc.length() == 32) { // This is still the hex-text string
 		        encryptor.setKandOpc(encryptor.convertSTR16ARR(ki), encryptor.convertSTR16ARR(opc));
 		    } else {
 		        string op = gSubscriberRegistry.imsiGet(imsi, "op");
-		        if(op.length() == 16) {
+		        if(op.length() == 32) { // This is still the hex-text string
 		            encryptor.setKandOp(encryptor.convertSTR16ARR(ki), encryptor.convertSTR16ARR(op));
 		        } else {
 		            // Don't have an OP or OPC value for the milenage algorhythm.
