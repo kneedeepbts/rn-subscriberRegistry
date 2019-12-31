@@ -37,6 +37,9 @@
 //#include "Logger.h"
 #include "SubscriberRegistry.h"
 
+#include <array>
+#include "milenage.h"
+
 using namespace std;
 
 
@@ -214,6 +217,45 @@ bool authenticate(string imsi, string randx, string sres, string *kc)
 		ostringstream os;
 		// per user value from subscriber registry
 		string a3a8 = gSubscriberRegistry.imsiGet(imsi, "a3_a8");
+
+		if (a3a8.length() == 8 && a3a8 == "milenage") {
+		    /*** Patching in the milenage stuff here. ***/
+		    spdlog::info("Authing via milenage - IMSI: {}, RAND: {}, SRES: {}", imsi, randx, sres);
+		    the303tel::crypto::Milenage encryptor;
+
+		    // Setup the keydata
+		    string opc = gSubscriberRegistry.imsiGet(imsi, "op_c");
+		    if (opc.length() == 16) {
+		        encryptor.setKandOpc(encryptor.convertSTR16ARR(ki), encryptor.convertSTR16ARR(opc));
+		    } else {
+		        string op = gSubscriberRegistry.imsiGet(imsi, "op");
+		        if(op.length() == 16) {
+		            encryptor.setKandOp(encryptor.convertSTR16ARR(ki), encryptor.convertSTR16ARR(op));
+		        } else {
+		            // Don't have an OP or OPC value for the milenage algorhythm.
+		            // So return false to be "unauthorized"
+		            return false;
+		        }
+		    }
+		    encryptor.setRAND(encryptor.convertSTR16ARR(randx));
+
+		    // Run the calc
+		    encryptor.runF2345();
+
+		    // Check the result
+		    if(encryptor.getGsmSRES() == convertSTR4ARR(sres)) {
+		        // SRES is good, so convert the Kc value back to a string and return true
+		        spdlog::info("Auth succeeded via milenage - IMSI: {}", imsi);
+		        std::array<uint8_t, 8> tmpKc = encryptor.getGsmKc();
+		        sprintf(kc, "%02X%02X%02X%02X%02X%02X%02X%02X", tmpKc[0], tmpKc[1], tmpKc[2], tmpKc[3], tmpKc[4], tmpKc[5], tmpKc[6], tmpKc[7]);
+		        return true;
+		    }
+
+		    // Something went wrong somewhere, so fail
+		    spdlog::warn("Failed to correctly auth via milenage - IMSI: {}", imsi);
+		    return false;
+		}
+
 		if (a3a8.length() == 0) {
 			// config value is default
 			//a3a8 = gConfig.getStr("SubscriberRegistry.A3A8");

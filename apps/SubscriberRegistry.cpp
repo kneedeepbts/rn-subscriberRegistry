@@ -154,7 +154,9 @@ static const char* createSBTable = {
 		"RRLPSupported         int(1) default 1 not null, "
   		"hardware              VARCHAR(20), "
 		"regTime               INTEGER default 0 NOT NULL, " // Unix time of most recent registration
-		"a3_a8                 varchar(45) default NULL"
+		"a3_a8                 varchar(45) default NULL, "
+		"op                    varchar(33) default '', " // Store the OP value used to program the SIM cards
+		"op_c                  varchar(33) default ''" // or Store the OPC value used to program the SIM cards
     ")"
 };
 
