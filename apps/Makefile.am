@@ -32,6 +32,8 @@ confdir = /etc/OpenBTS
 conf_DATA = sipauthserve.example.sql 
 
 sipauthserve_SOURCES = \
+    rijndael.cpp \
+    milenage.cpp \
 	servershare.cpp \
 	SubscriberRegistry.cpp \
     sipauthserve.cpp
