@@ -243,11 +243,11 @@ bool authenticate(string imsi, string randx, string sres, string *kc)
 		    encryptor.runF2345();
 
 		    // Check the result
-		    if(encryptor.getGsmSRES() == convertSTR4ARR(sres)) {
+		    if(encryptor.getGsmSRES() == encryptor.convertSTR4ARR(sres)) {
 		        // SRES is good, so convert the Kc value back to a string and return true
 		        spdlog::info("Auth succeeded via milenage - IMSI: {}", imsi);
 		        std::array<uint8_t, 8> tmpKc = encryptor.getGsmKc();
-		        sprintf(kc, "%02X%02X%02X%02X%02X%02X%02X%02X", tmpKc[0], tmpKc[1], tmpKc[2], tmpKc[3], tmpKc[4], tmpKc[5], tmpKc[6], tmpKc[7]);
+		        sprintf(kc, "%02X%02X%02X%02X%02X%02X%02X%02X", tmpKc[0].c_str(), tmpKc[1].c_str(), tmpKc[2].c_str(), tmpKc[3].c_str(), tmpKc[4].c_str(), tmpKc[5].c_str(), tmpKc[6].c_str(), tmpKc[7].c_str());
 		        return true;
 		    }
 
