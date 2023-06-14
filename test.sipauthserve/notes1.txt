@@ -1,0 +1,75 @@
+fbus@openbtsdev:~/subscriberRegistry$ ./apps/sipauthserve
+[2019-12-29 19:24:29.486] [console_logger] [warning] Log level value from the config: debug
+[2019-12-29 19:24:29.486] [console_logger] [debug] debug mode is enabled
+[2019-12-29 19:24:29.486] [console_logger] [warning] SipAuthServe Starting
+[2019-12-29 19:24:29.487] [console_logger] [info] SubscriberRegistry initialized
+[2019-12-29 19:24:29.487] [console_logger] [warning] Binding on port 5064
+[2019-12-29 19:24:32.730] [console_logger] [info] receiving: REGISTER sip:127.0.0.1 SIP/2.0
+To: <sip:IMSI001011255814872@127.0.0.1:5064>
+From: <sip:IMSI001011255814872@127.0.0.1:5064>;tag=OBTSlfknayjhadftpubd
+Via: SIP/2.0/UDP 127.0.0.1:5062;branch=z9hG4bKOBTStresbrwgffdjcqrh
+Call-ID: 55933e4d179a2dbd
+CSeq: 19423 REGISTER
+Contact: <sip:IMSI001011255814872@127.0.0.1:5062>;expires=5400
+Authorization: Digest nonce="cd464d5b27ec5ca74b3f8e338db69c15", uri="001011255814872", response="37ce477b"
+Max-Forwards: 70
+P-Preferred-Identity: <sip:IMSI001011255814872@127.0.0.1>
+P-PHY-Info: OpenBTS; IMSI=no-MMUser TA=0 TE=-0.687307 UpRSSI=-8.360615 TxPwr=27 DnRSSIdBm=-50 time=1577665075.505
+P-Access-Network-Info: 3GPP-GERAN; cgi-3gpp=0010103e8000a
+User-Agent: OpenBTS 5.0-master Build Date 2019-12-20T22:55:07
+Content-Length: 0
+
+[2019-12-29 19:24:32.730] [console_logger] [info] request: REGISTER sip:127.0.0.1 SIP/2.0
+Via: SIP/2.0/UDP 127.0.0.1:5062;branch=z9hG4bKOBTStresbrwgffdjcqrh
+From: <sip:IMSI001011255814872@127.0.0.1:5064>;tag=OBTSlfknayjhadftpubd
+To: <sip:IMSI001011255814872@127.0.0.1:5064>
+Call-ID: 55933e4d179a2dbd
+CSeq: 19423 REGISTER
+Contact: <sip:IMSI001011255814872@127.0.0.1:5062>;expires=5400
+Authorization: Digest, nonce="cd464d5b27ec5ca74b3f8e338db69c15", uri="001011255814872", response="37ce477b"
+Max-forwards: 70
+P-preferred-identity: <sip:IMSI001011255814872@127.0.0.1>
+P-phy-info: OpenBTS; IMSI=no-MMUser TA=0 TE=-0.687307 UpRSSI=-8.360615 TxPwr=27 DnRSSIdBm=-50 time=1577665075.505
+P-access-network-info: 3GPP-GERAN; cgi-3gpp=0010103e8000a
+User-agent: OpenBTS 5.0-master Build Date 2019-12-20T22:55:07
+Content-Length: 0
+
+
+[2019-12-29 19:24:32.730] [console_logger] [info] Remote host: 127.0.0.1
+[2019-12-29 19:24:32.731] [console_logger] [info] Remote port: 5062
+[2019-12-29 19:24:32.731] [console_logger] [debug] IMSI from: 001011255814872
+[2019-12-29 19:24:32.731] [console_logger] [debug] IMSI to: 001011255814872
+[2019-12-29 19:24:32.731] [console_logger] [info] select id from sip_buddies where username = "IMSI001011255814872"
+[2019-12-29 19:24:32.731] [console_logger] [info] result: 3
+[2019-12-29 19:24:32.731] [console_logger] [info] rand = /cd464d5b27ec5ca74b3f8e338db69c15/
+[2019-12-29 19:24:32.731] [console_logger] [info] sres = /37ce477b/
+
+[2019-12-29 19:24:32.731] [console_logger] [info] select ki from sip_buddies where username = "IMSI001011255814872"
+[2019-12-29 19:24:32.731] [console_logger] [info] result: 4f1cd91e7314cf61a1b8801e1d988a45
+[2019-12-29 19:24:32.731] [console_logger] [info] ki known
+
+[2019-12-29 19:24:32.731] [console_logger] [info] select a3_a8 from sip_buddies where username = "IMSI001011255814872"
+[2019-12-29 19:24:32.731] [console_logger] [error] Subscriber registry returned a NULL column.
+[2019-12-29 19:24:32.731] [console_logger] [info] not found: select a3_a8 from sip_buddies where username = "IMSI001011255814872"
+[2019-12-29 19:24:32.731] [console_logger] [info] cannot get key a3_a8 for username IMSI001011255814872
+[2019-12-29 19:24:32.733] [console_logger] [info] result: E4C1D96F  // Hand Run: E4C1D96F 56713A574D893800
+[2019-12-29 19:24:32.733] [console_logger] [debug] sres1 = 936265595
+[2019-12-29 19:24:32.733] [console_logger] [debug] sres2 = 3837909359
+[2019-12-29 19:24:32.733] [console_logger] [info] returning: false
+
+[2019-12-29 19:24:32.733] [console_logger] [info] imsi 001011255814872 known, 2nd register, good = false
+[2019-12-29 19:24:32.733] [console_logger] [info] response: SIP/2.0 401 Unauthorized
+Via: SIP/2.0/UDP localhost:5064;branch=1;received=string_address@foo.bar
+Via: SIP/2.0/UDP 127.0.0.1:5062;branch=z9hG4bKOBTStresbrwgffdjcqrh
+From: <sip:IMSI001011255814872@127.0.0.1:5064>;tag=OBTSlfknayjhadftpubd
+To: <sip:IMSI001011255814872@127.0.0.1:5064>
+Call-ID: 55933e4d179a2dbd
+CSeq: 19423 REGISTER
+Contact: <sip:IMSI001011255814872@127.0.0.1:5062>;expires=5400
+Authorization: Digest, nonce="cd464d5b27ec5ca74b3f8e338db69c15", uri="001011255814872", response="37ce477b"
+Max-forwards: 70
+P-preferred-identity: <sip:IMSI001011255814872@127.0.0.1>
+P-phy-info: OpenBTS; IMSI=no-MMUser TA=0 TE=-0.687307 UpRSSI=-8.360615 TxPwr=27 DnRSSIdBm=-50 time=1577665075.505
+P-access-network-info: 3GPP-GERAN; cgi-3gpp=0010103e8000a
+User-agent: OpenBTS 5.0-master Build Date 2019-12-20T22:55:07
+Content-Length: 0

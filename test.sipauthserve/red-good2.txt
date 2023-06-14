@@ -1,0 +1,14 @@
+REGISTER sip:127.0.0.1 SIP/2.0
+To: <sip:IMSI001011255814873@127.0.0.1:5064>
+From: <sip:IMSI001011255814873@127.0.0.1:5064>;tag=OBTSlfknayjhadftpubd
+Via: SIP/2.0/UDP 127.0.0.1:5062;branch=z9hG4bKOBTStresbrwgffdjcqrh
+Call-ID: 55933e4d179a2dbd
+CSeq: 19423 REGISTER
+Contact: <sip:IMSI001011255814873@127.0.0.1:5062>;expires=5400
+Authorization: Digest nonce="00112233445566778899aabbccddeeff", uri="001011255814873", response="34bc47ee"
+Max-Forwards: 70
+P-Preferred-Identity: <sip:IMSI001011255814873@127.0.0.1>
+P-PHY-Info: OpenBTS; IMSI=no-MMUser TA=0 TE=-0.687307 UpRSSI=-8.360615 TxPwr=27 DnRSSIdBm=-50 time=1577665075.505
+P-Access-Network-Info: 3GPP-GERAN; cgi-3gpp=0010103e8000a
+User-Agent: OpenBTS 5.0-master Build Date 2019-12-20T22:55:07
+Content-Length: 0
