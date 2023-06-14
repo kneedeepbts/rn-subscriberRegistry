@@ -1,5 +1,6 @@
 #
-# Copyright 2013, 2014 Range Networks, Inc.
+# Copyright 2008, 2009 Free Software Foundation, Inc.
+# Copyright 2011, 2012, 2014 Range Networks, Inc.
 #
 # This software is distributed under the terms of the GNU Public License.
 # See the COPYING file in the main directory for details.
@@ -20,33 +21,24 @@
 
 include $(top_srcdir)/Makefile.common
 
-DESTDIR := 
+# AM_CPPFLAGS = $(STD_DEFINES_AND_INCLUDES)
+# AM_CXXFLAGS = -Wall -O3 -g -ldl -lpthread -lsqlite3
 
-ourlibs = \
-	$(GLOBALS_LA) \
-	$(FIXMES_LA)
+#EXTRA_DIST = \
+#	example.config \
+#	README.common
 
-sbin_PROGRAMS = sipauthserve comp128
-bin_SCRIPTS = syslogextractor hexmapper 
-confdir = /etc/OpenBTS
-conf_DATA = sipauthserve.example.sql 
+noinst_LTLIBRARIES = libfixmes.la
 
-sipauthserve_SOURCES = \
-    rijndael.cpp \
-    milenage.cpp \
-	servershare.cpp \
-	SubscriberRegistry.cpp \
-    sipauthserve.cpp
+libfixmes_la_CXXFLAGS = $(AM_CXXFLAGS) -O3 -lsqlite3
+libfixmes_la_SOURCES = \
+	sqlite3util.cpp \
+	Threads.cpp \
+	Timeval.cpp \
+	Utils.cpp
 
-sipauthserve_LDADD = $(ourlibs) -losipparser2 -losip2
-
-comp128_SOURCES = comp128.c
-comp128_LDADD = $(ourlibs)
-
-#sipauthserve.example.sql: sipauthserve
-#	( ./sipauthserve --gensql > sipauthserve.example.sql || true )
-
-#tmp_DB = /tmp/SR.db
-#TESTS = checkdb.sh
-#CLEANFILES = $(tmp_DB)
-
+noinst_HEADERS = \
+	sqlite3util.h \
+	Threads.h \
+	Timeval.h \
+	Utils.h

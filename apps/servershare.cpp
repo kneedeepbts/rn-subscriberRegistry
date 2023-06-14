@@ -28,25 +28,29 @@
 #include <sstream>
 #include <fstream>
 #include <cstdlib>
-#include <Configuration.h>
+//#include <Configuration.h>
 #include <Utils.h>
 #include <string.h>
 
 #include "servershare.h"
 #include "sqlite3.h"
-#include "Logger.h"
+//#include "Logger.h"
 #include "SubscriberRegistry.h"
+
+#include <array>
+#include "milenage.h"
 
 using namespace std;
 
 
-extern ConfigurationTable gConfig;
+//extern ConfigurationTable gConfig;
 
 // just using this for the database access
 extern SubscriberRegistry gSubscriberRegistry;
 
+#define CONFIG_A3A8_BIN_LOCATION "/OpenBTS/comp128"
 
-
+/*
 ConfigurationKeyMap getConfigurationKeys()
 {
 	ConfigurationKeyMap map;
@@ -87,6 +91,7 @@ ConfigurationKeyMap getConfigurationKeys()
 
 	return map;
 }
+*/
 
 string soGenerateIt()
 {
@@ -104,18 +109,21 @@ string generateRand(string imsi)
 	string ki = gSubscriberRegistry.imsiGet(imsi, "ki");
 	string ret;
 	if (ki.length() != 0) {
-		LOG(INFO) << "ki is known";
+		//LOG(INFO) << "ki is known";
+		spdlog::info("ki is known");
 		// generate and return rand (clear any cached rand or sres)
 		gSubscriberRegistry.imsiSet(imsi, "rand", "", "sres", "");
 		ret = soGenerateIt();
 	} else {
 		string wRand = gSubscriberRegistry.imsiGet(imsi, "rand");
 		if (wRand.length() != 0) {
-			LOG(INFO) << "ki is unknown, rand is cached";
+			//LOG(INFO) << "ki is unknown, rand is cached";
+			spdlog::info("ki is unknown, rand is cached");
 			// return cached rand
 			ret = wRand;
 		} else {
-			LOG(INFO) << "ki is unknown, rand is not cached";
+			//LOG(INFO) << "ki is unknown, rand is not cached";
+			spdlog::info("ki is unknown, rand is not cached");
 			// generate rand, cache rand, clear sres, and return rand
 			wRand = soGenerateIt();
 			gSubscriberRegistry.imsiSet(imsi, "rand", wRand, "sres", "");
@@ -146,8 +154,10 @@ bool sresEqual(string a, string b)
 	ss1 >> sres1;
 	ss2 >> sres2;
 
-	LOG(DEBUG) << "sres1 = " << sres1;
-	LOG(DEBUG) << "sres2 = " << sres2;
+	//LOG(DEBUG) << "sres1 = " << sres1;
+	spdlog::debug("sres1 = {}", sres1);
+	//LOG(DEBUG) << "sres2 = " << sres2;
+	spdlog::debug("sres2 = {}", sres2);
 
 	return (sres1 == sres2);
 }
@@ -165,8 +175,10 @@ bool randEqual(string a, string b)
 	Utils::stringToUint(a, &rand1h, &rand1l);
 	Utils::stringToUint(b, &rand2h, &rand2l);
 
-	LOG(DEBUG) << "rand1h = " << rand1h << ", rand1l = " << rand1l;
-	LOG(DEBUG) << "rand2h = " << rand2h << ", rand2l = " << rand2l;
+	//LOG(DEBUG) << "rand1h = " << rand1h << ", rand1l = " << rand1l;
+	spdlog::debug("rand1h = {}, rand1l = {}", rand1h, rand1l);
+	//LOG(DEBUG) << "rand2h = " << rand2h << ", rand2l = " << rand2l;
+	spdlog::debug("rand2h = {}, rand2l = {}", rand2h, rand2l);
 
 	return (rand1h == rand2h) && (rand1l == rand2l);
 }
@@ -182,56 +194,108 @@ bool authenticate(string imsi, string randx, string sres, string *kc)
 		// Ki is unknown
 		string sres2 = gSubscriberRegistry.imsiGet(imsi, "sres");
 		if (sres2.length() == 0) {
-			LOG(INFO) << "ki unknown, no upstream server, sres not cached";
+			//LOG(INFO) << "ki unknown, no upstream server, sres not cached";
+			spdlog::info("ki unknown, no upstream server, sres not cached");
 			// first time - cache sres and rand so next time
 			// correct cell phone will calc same sres from same rand
 			gSubscriberRegistry.imsiSet(imsi, "sres", sres, "rand", randx);
 			ret = true;
 		} else {
-			LOG(INFO) << "ki unknown, no upstream server, sres cached";
+			//LOG(INFO) << "ki unknown, no upstream server, sres cached";
+			spdlog::info("ki unknown, no upstream server, sres cached");
 			// check against cached values of rand and sres
 			string rand2 = gSubscriberRegistry.imsiGet(imsi, "rand");
 			// TODO - on success, compute and return kc
-			LOG(DEBUG) << "comparing " << sres << " to " << sres2 << " and " << randx << " to " << rand2;
+			//LOG(DEBUG) << "comparing " << sres << " to " << sres2 << " and " << randx << " to " << rand2;
+			spdlog::debug("comparing {} to {} and {} to {}", sres, sres2, randx, rand2);
 			ret = sresEqual(sres, sres2) && randEqual(randx, rand2);
 		}
 	} else {
-		LOG(INFO) << "ki known";
+		//LOG(INFO) << "ki known";
+		spdlog::info("ki known");
 		// Ki is known, so do normal authentication
 		ostringstream os;
 		// per user value from subscriber registry
 		string a3a8 = gSubscriberRegistry.imsiGet(imsi, "a3_a8");
+
+		if (a3a8.length() == 8 && a3a8 == "milenage") {
+		    /*** Patching in the milenage stuff here. ***/
+		    spdlog::info("Authing via milenage - IMSI: {}, RAND: {}, SRES: {}", imsi, randx, sres);
+		    the303tel::crypto::Milenage encryptor;
+
+		    // Setup the keydata
+		    string opc = gSubscriberRegistry.imsiGet(imsi, "op_c");
+		    if (opc.length() == 32) { // This is still the hex-text string
+		        encryptor.setKandOpc(encryptor.convertSTR16ARR(ki), encryptor.convertSTR16ARR(opc));
+		    } else {
+		        string op = gSubscriberRegistry.imsiGet(imsi, "op");
+		        if(op.length() == 32) { // This is still the hex-text string
+		            encryptor.setKandOp(encryptor.convertSTR16ARR(ki), encryptor.convertSTR16ARR(op));
+		        } else {
+		            // Don't have an OP or OPC value for the milenage algorhythm.
+		            // So return false to be "unauthorized"
+		            return false;
+		        }
+		    }
+		    encryptor.setRAND(encryptor.convertSTR16ARR(randx));
+
+		    // Run the calc
+		    encryptor.runF2345();
+
+		    // Check the result
+		    if(encryptor.getGsmSRES() == encryptor.convertSTR4ARR(sres)) {
+		        // SRES is good, so convert the Kc value back to a string and return true
+		        spdlog::info("Auth succeeded via milenage - IMSI: {}", imsi);
+		        std::array<uint8_t, 8> tmpKc = encryptor.getGsmKc();
+		        char tmpKcKc[17];
+		        sprintf(tmpKcKc, "%02X%02X%02X%02X%02X%02X%02X%02X", tmpKc[0], tmpKc[1], tmpKc[2], tmpKc[3], tmpKc[4], tmpKc[5], tmpKc[6], tmpKc[7]);
+		        tmpKcKc[16] = 0;
+		        *kc = tmpKcKc;
+		        return true;
+		    }
+
+		    // Something went wrong somewhere, so fail
+		    spdlog::warn("Failed to correctly auth via milenage - IMSI: {}", imsi);
+		    return false;
+		}
+
 		if (a3a8.length() == 0) {
 			// config value is default
-			a3a8 = gConfig.getStr("SubscriberRegistry.A3A8");
+			//a3a8 = gConfig.getStr("SubscriberRegistry.A3A8");
+			a3a8 = CONFIG_A3A8_BIN_LOCATION;
 		}
 		os << a3a8 << " 0x" << ki << " 0x" << randx;
 		// must not put ki into the log
 		// LOG(INFO) << "running " << os.str();
 		FILE *f = popen(os.str().c_str(), "r");
 		if (f == NULL) {
-			LOG(CRIT) << "error: popen failed";
+			//LOG(CRIT) << "error: popen failed";
+			spdlog::critical("error: popen failed");
 			return false;
 		}
 		char sres2[26];
 		char *str = fgets(sres2, 26, f);
 		if (str != NULL && strlen(str) == 25) str[24] = 0;
 		if (str == NULL || strlen(str) != 24) {
-			LOG(CRIT) << "error: popen result failed";
+			//LOG(CRIT) << "error: popen result failed";
+			spdlog::critical("error: popen result failed");
 			return false;
 		}
 		int st = pclose(f);
 		if (st == -1) {
-			LOG(CRIT) << "error: pclose failed";
+			//LOG(CRIT) << "error: pclose failed";
+			spdlog::critical("error: pclose failed");
 			return false;
 		}
 		// first 8 chars are SRES;  rest are Kc
 		*kc = sres2+8;
 		sres2[8] = 0;
-		LOG(INFO) << "result = " << sres2;
+		//LOG(INFO) << "result = " << sres2;
+		spdlog::info("result: {}", sres2);
 		ret = sresEqual(sres, sres2);
 	}
-	LOG(INFO) << "returning = " << ret;
+	//LOG(INFO) << "returning = " << ret;
+	spdlog::info("returning: {}", ret);
 	return ret;
 }
 

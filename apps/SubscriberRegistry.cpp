@@ -34,9 +34,9 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm> // for sort()
-#include <Configuration.h>
+//#include <Configuration.h>
 
-extern ConfigurationTable gConfig;
+//extern ConfigurationTable gConfig;
 
 
 using namespace std;
@@ -154,7 +154,9 @@ static const char* createSBTable = {
 		"RRLPSupported         int(1) default 1 not null, "
   		"hardware              VARCHAR(20), "
 		"regTime               INTEGER default 0 NOT NULL, " // Unix time of most recent registration
-		"a3_a8                 varchar(45) default NULL"
+		"a3_a8                 varchar(45) default NULL, "
+		"op                    varchar(33) default '', " // Store the OP value used to program the SIM cards
+		"op_c                  varchar(33) default ''" // or Store the OPC value used to program the SIM cards
     ")"
 };
 
@@ -168,67 +170,84 @@ static const char* createMEMSBTable = {
     ")"
 };
 
+#define CONFIG_SUBSCRIBER_REGISTRY_LOCATION "/var/lib/asterisk/sqlite3dir/sqlite3.db"
+#define CONFIG_SQL_NUM_RETRIES 3
+
 int SubscriberRegistry::init()
 {
-	string ldb = gConfig.getStr("SubscriberRegistry.db");
+	//string ldb = gConfig.getStr("SubscriberRegistry.db");
+	string ldb = CONFIG_SUBSCRIBER_REGISTRY_LOCATION;
 	size_t p = ldb.find_last_of('/');
 	if (p == string::npos) {
-		LOG(EMERG) << "SubscriberRegistry.db not in a directory?";
+		//LOG(EMERG) << "SubscriberRegistry.db not in a directory?";
+		spdlog::critical("SubscriberRegistry.db not in a directory?");
 		mDB = NULL;
 		return 1;
 	}
 	string dir = ldb.substr(0, p);
 	struct stat buf;
 	if (stat(dir.c_str(), &buf)) {
-		LOG(EMERG) << dir << " does not exist";
+		//LOG(EMERG) << dir << " does not exist";
+		spdlog::critical("{} does not exist", dir);
 		mDB = NULL;
 		return 1;
 	}
-	mNumSQLTries=gConfig.getNum("Control.NumSQLTries"); 
+	//mNumSQLTries=gConfig.getNum("Control.NumSQLTries");
+	mNumSQLTries = CONFIG_SQL_NUM_RETRIES;
 	int rc = sqlite3_open(ldb.c_str(),&mDB);
 	if (rc) {
-		LOG(EMERG) << "Cannot open SubscriberRegistry database: " << ldb << " error: " << sqlite3_errmsg(mDB);
+		//LOG(EMERG) << "Cannot open SubscriberRegistry database: " << ldb << " error: " << sqlite3_errmsg(mDB);
+		spdlog::critical("Cannot open SubscriberRegistry database: {} - error: {}", ldb, sqlite3_errmsg(mDB));
 		sqlite3_close(mDB);
 		mDB = NULL;
 		return 1;
 	}
 	if (!sqlite3_command(mDB,createRRLPTable,mNumSQLTries)) {
-		LOG(EMERG) << "Cannot create RRLP table";
+		//LOG(EMERG) << "Cannot create RRLP table";
+		spdlog::critical("Cannot create RRLP table");
 		return 1;
 	}
 	if (!sqlite3_command(mDB,createDDTable,mNumSQLTries)) {
-		LOG(EMERG) << "Cannot create DIALDATA_TABLE table";
+		//LOG(EMERG) << "Cannot create DIALDATA_TABLE table";
+		spdlog::critical("Cannot create DIALDATA_TABLE table");
 		return 1;
 	}
 	if (!sqlite3_command(mDB,createRateTable,mNumSQLTries)) {
-		LOG(EMERG) << "Cannot create rate table";
+		//LOG(EMERG) << "Cannot create rate table";
+		spdlog::critical("Cannot create rate table");
 		return 1;
 	}
 	if (!sqlite3_command(mDB,createSBTable,mNumSQLTries)) {
-		LOG(EMERG) << "Cannot create SIP_BUDDIES table";
+		//LOG(EMERG) << "Cannot create SIP_BUDDIES table";
+		spdlog::critical("Cannot create SIP_BUDDIES table");
 		return 1;
 	}
 	// Set high-concurrency WAL mode.
 	if (!sqlite3_command(mDB,enableWAL,mNumSQLTries)) {
-		LOG(EMERG) << "Cannot enable WAL mode on database at " << ldb << ", error message: " << sqlite3_errmsg(mDB);
+		//LOG(EMERG) << "Cannot enable WAL mode on database at " << ldb << ", error message: " << sqlite3_errmsg(mDB);
+		spdlog::critical("Cannot enable WAL mode on database at {}, error message: {}", ldb, sqlite3_errmsg(mDB));
 	}
 
 #ifndef SR_API_ONLY
 	// memory based sip_buddies table
 	if (!sqlite3_command(mDB,"attach database ':memory:' as memcache",mNumSQLTries)) {
-		LOG(EMERG) << "Cannot create memcache database";
+		//LOG(EMERG) << "Cannot create memcache database";
+		spdlog::critical("Cannot create memcache database");
 		return 1;
 	}
 	if (!sqlite3_command(mDB,createMEMSBTable,mNumSQLTries)) {
-		LOG(EMERG) << "Cannot create memcache mem_sip_buddies table";
+		//LOG(EMERG) << "Cannot create memcache mem_sip_buddies table";
+		spdlog::critical("Cannot create memcache mem_sip_buddies table");
 		return 1;
 	}
 	if (!sqlite3_command(mDB,"INSERT INTO mem_sip_buddies SELECT username, ipaddr, port, rand, sres FROM sip_buddies",mNumSQLTries)) {
-		LOG(EMERG) << "Cannot populate mem_sip_buddies table with disk contents";
+		//LOG(EMERG) << "Cannot populate mem_sip_buddies table with disk contents";
+		spdlog::critical("Cannot populate mem_sip_buddies table with disk contents");
 		return 1;
 	}
 	if (!sqlite3_command(mDB,"ALTER TABLE mem_sip_buddies ADD dirty INTEGER DEFAULT 0",mNumSQLTries)) {
-		LOG(EMERG) << "Cannot add dirty column to mem_sip_buddies table";
+		//LOG(EMERG) << "Cannot add dirty column to mem_sip_buddies table";
+		spdlog::critical("Cannot add dirty column to mem_sip_buddies table");
 		return 1;
 	}
 
@@ -239,6 +258,7 @@ int SubscriberRegistry::init()
 	return 0;
 }
 
+/*
 string SubscriberRegistry::getResultsAsString(string query)
 {
 	sqlite3_stmt *stmt;
@@ -294,6 +314,7 @@ string SubscriberRegistry::getResultsAsString(string query)
 
 	return s.str();
 }
+*/
 
 vector<string> SubscriberRegistry::getTableColumns(string tableName)
 {
@@ -338,7 +359,8 @@ string SubscriberRegistry::generateSyncToDiskQuery()
 {
 	vector<string> columns = getTableColumns("sip_buddies");
 	if (!columns.size()) {
-		LOG(DEBUG) << "sip_buddies is empty";
+		//LOG(DEBUG) << "sip_buddies is empty";
+		spdlog::debug("sip_buddies is empty");
 		return "";
 	}
 
@@ -417,34 +439,43 @@ bool SubscriberRegistry::syncMemoryDB()
 	if (syncToDisk.length()) {
 		// sync dirty entries to disk
 		if (sqlUpdate(syncToDisk.c_str()) == FAILURE) {
-			LOG(ERR) << "syncToDisk failed";
+			//LOG(ERR) << "syncToDisk failed";
+			spdlog::error("syncToDisk failed");
 		} else {
 			// if it succeeds, mark these entries as clean again
-			LOG(INFO) << "syncToDisk succeeded";
+			//LOG(INFO) << "syncToDisk succeeded";
+			spdlog::info("syncToDisk succeeded");
 			if (sqlUpdate(cleanDirty.c_str()) == FAILURE) {
-				LOG(ERR) << "cleanDirty failed";
+				//LOG(ERR) << "cleanDirty failed";
+				spdlog::error("cleanDirty failed");
 			} else {
-				LOG(INFO) << "cleanDirty succeeded";
+				//LOG(INFO) << "cleanDirty succeeded";
+				spdlog::info("cleanDirty succeeded");
 			}
 		}
 
 		// sync new rows from the disk into memory
 		if (sqlUpdate(syncFromDiskAddNewEntries.c_str()) == FAILURE) {
-			LOG(ERR) << "syncFromDiskAddNewEntries failed";
+			//LOG(ERR) << "syncFromDiskAddNewEntries failed";
+			spdlog::error("syncFromDiskAddNewEntries failed");
 		} else {
-			LOG(INFO) << "syncFromDiskAddNewEntries succeeded";
+			//LOG(INFO) << "syncFromDiskAddNewEntries succeeded";
+			spdlog::info("syncFromDiskAddNewEntries succeeded");
 		}
 	}
 
 	// delete old entries from memory no longer found on the disk
 	if (sqlUpdate(syncFromDiskDeleteOldEntries.c_str()) == FAILURE) {
-		LOG(ERR) << "syncFromDiskDeleteOldEntries failed";
+		//LOG(ERR) << "syncFromDiskDeleteOldEntries failed";
+		spdlog::error("syncFromDiskDeleteOldEntries failed");
 	} else {
-		LOG(INFO) << "syncFromDiskDeleteOldEntries succeeded";
+		//LOG(INFO) << "syncFromDiskDeleteOldEntries succeeded";
+		spdlog::error("syncFromDiskDeleteOldEntries succeeded");
 	}
 
 	mLock.unlock();
-	LOG(INFO) << "syncMemoryDB() locked the db for " << timer.elapsed() << "ms";
+	//LOG(INFO) << "syncMemoryDB() locked the db for " << timer.elapsed() << "ms";
+	spdlog::info("syncMemoryDB() locked the db for {} ms", timer.elapsed());
 
 	return ret;
 }
@@ -459,7 +490,8 @@ SubscriberRegistry::~SubscriberRegistry()
 
 SubscriberRegistry::Status SubscriberRegistry::sqlLocal(const char *query, char **resultptr)
 {
-	LOG(INFO) << query;
+	//LOG(INFO) << query;
+	spdlog::info("{}", query);
 
 	if (!resultptr) {
 		if (!sqlite3_command(db(), query, mNumSQLTries)) return FAILURE;
@@ -468,7 +500,8 @@ SubscriberRegistry::Status SubscriberRegistry::sqlLocal(const char *query, char 
 
 	sqlite3_stmt *stmt;
 	if (sqlite3_prepare_statement(db(), &stmt, query, mNumSQLTries)) {
-		LOG(ERR) << "sqlite3_prepare_statement problem with query \"" << query << "\"";
+		//LOG(ERR) << "sqlite3_prepare_statement problem with query \"" << query << "\"";
+		spdlog::error("sqlite3_prepare_statement problem with query \"{}\"", query);
 		return FAILURE;
 	}
 	int src = sqlite3_run_query(db(), stmt, mNumSQLTries);
@@ -478,7 +511,8 @@ SubscriberRegistry::Status SubscriberRegistry::sqlLocal(const char *query, char 
 	}
 	char *column = (char*)sqlite3_column_text(stmt, 0);
 	if (!column) {
-		LOG(ERR) << "Subscriber registry returned a NULL column.";
+		//LOG(ERR) << "Subscriber registry returned a NULL column.";
+		spdlog::error("Subscriber registry returned a NULL column.");
 		sqlite3_finalize(stmt);
 		return FAILURE;
 	}
@@ -498,11 +532,13 @@ char *SubscriberRegistry::sqlQuery(const char *unknownColumn, const char *table,
 	st = sqlLocal(os.str().c_str(), &result);
 	if ((st == SUCCESS) && result) {
 		// got it.  return it.
-		LOG(INFO) << "result = " << result;
+		//LOG(INFO) << "result = " << result;
+		spdlog::info("result: {}", result);
 		return result;
 	}
 	// didn't find locally
-	LOG(INFO) << "not found: " << os.str();
+	//LOG(INFO) << "not found: " << os.str();
+	spdlog::info("not found: {}", os.str());
 	return NULL;
 }
 
@@ -524,18 +560,21 @@ char *SubscriberRegistry::sqlQuery2(const char *unknownColumn, const char *table
 	st = sqlLocal(os.str().c_str(), &result);
 	if ((st == SUCCESS) && result) {
 		// got it.  return it.
-		LOG(INFO) << "result = " << result;
+		//LOG(INFO) << "result = " << result;
+		spdlog::info("result: {}", result);
 		return result;
 	}
 	// didn't find locally
-	LOG(INFO) << "not found: " << os.str();
+	//LOG(INFO) << "not found: " << os.str();
+	spdlog::info("not found: {}", os.str());
 	return NULL;
 }
 
 
 SubscriberRegistry::Status SubscriberRegistry::sqlUpdate(const char *stmt)
 {
-	LOG(INFO) << stmt;
+	//LOG(INFO) << stmt;
+	spdlog::info("{}", stmt);
  	return sqlLocal(stmt, NULL);
 }
 
@@ -544,7 +583,8 @@ string SubscriberRegistry::imsiGet(string imsi, string key)
 	string name = imsi.substr(0,4) == "IMSI" ? imsi : "IMSI" + imsi;
 	char *st = sqlQuery(key.c_str(), "sip_buddies", "username", name.c_str());
 	if (!st) {
-		LOG(INFO) << "cannot get key " << key << " for username " << name;
+		//LOG(INFO) << "cannot get key " << key << " for username " << name;
+		spdlog::info("cannot get key {} for username {}", key, name);
 		return "";
 	}
 	return st;
@@ -585,10 +625,12 @@ bool SubscriberRegistry::imsiSet(string imsi, string key1, string value1, string
 char *SubscriberRegistry::getIMSI(const char *ISDN)
 {
 	if (!ISDN) {
-		LOG(WARNING) << "SubscriberRegistry::getIMSI attempting lookup of NULL ISDN";
+		//LOG(WARNING) << "SubscriberRegistry::getIMSI attempting lookup of NULL ISDN";
+		spdlog::warn("SubscriberRegistry::getIMSI attempting lookup of NULL ISDN");
 		return NULL;
 	}
-	LOG(INFO) << "getIMSI(" << ISDN << ")";
+	//LOG(INFO) << "getIMSI(" << ISDN << ")";
+	spdlog::info("getIMSI( {} )", ISDN);
 	return sqlQuery("dial", "dialdata_table", "exten", ISDN);
 }
 
@@ -601,10 +643,12 @@ char *SubscriberRegistry::getIMSI(const char *ISDN)
 char *SubscriberRegistry::getIMSI2(const char *ISDN)
 {
 	if (!ISDN) {
-		LOG(WARNING) << "SubscriberRegistry::getIMSI2 attempting lookup of NULL ISDN";
+		//LOG(WARNING) << "SubscriberRegistry::getIMSI2 attempting lookup of NULL ISDN";
+		spdlog::warn("SubscriberRegistry::getIMSI2 attempting lookup of NULL ISDN");
 		return NULL;
 	}
-	LOG(INFO) << "getIMSI2(" << ISDN << ")";
+	//LOG(INFO) << "getIMSI2(" << ISDN << ")";
+	spdlog::info("getIMSI2( {} )", ISDN);
 	char* str2;
 	char localstr[50];
 	if (ISDN[0] == '+') {
@@ -624,10 +668,12 @@ char *SubscriberRegistry::getIMSI2(const char *ISDN)
 char *SubscriberRegistry::getCLIDLocal(const char* IMSI)
 {
 	if (!IMSI) {
-		LOG(WARNING) << "SubscriberRegistry::getCLIDLocal attempting lookup of NULL IMSI";
+		//LOG(WARNING) << "SubscriberRegistry::getCLIDLocal attempting lookup of NULL IMSI";
+		spdlog::warn("SubscriberRegistry::getCLIDLocal attempting lookup of NULL IMSI");
 		return NULL;
 	}
-	LOG(INFO) << "getCLIDLocal(" << IMSI << ")";
+	//LOG(INFO) << "getCLIDLocal(" << IMSI << ")";
+	spdlog::info("getCLIDLocal( {} )", IMSI);
 	return sqlQuery("callerid", "sip_buddies", "username", IMSI);
 }
 
@@ -636,10 +682,12 @@ char *SubscriberRegistry::getCLIDLocal(const char* IMSI)
 char *SubscriberRegistry::getCLIDGlobal(const char* IMSI)
 {
 	if (!IMSI) {
-		LOG(WARNING) << "SubscriberRegistry::getCLIDGlobal attempting lookup of NULL IMSI";
+		//LOG(WARNING) << "SubscriberRegistry::getCLIDGlobal attempting lookup of NULL IMSI";
+		spdlog::warn("SubscriberRegistry::getCLIDGlobal attempting lookup of NULL IMSI");
 		return NULL;
 	}
-	LOG(INFO) << "getCLIDGlobal(" << IMSI << ")";
+	//LOG(INFO) << "getCLIDGlobal(" << IMSI << ")";
+	spdlog::info("getCLIDGlobal( {} )", IMSI);
 	return sqlQuery("callerid", "sip_buddies", "username", IMSI);
 }
 
@@ -648,10 +696,12 @@ char *SubscriberRegistry::getCLIDGlobal(const char* IMSI)
 char *SubscriberRegistry::getRegistrationIP(const char* IMSI)
 {
 	if (!IMSI) {
-		LOG(WARNING) << "SubscriberRegistry::getRegistrationIP attempting lookup of NULL IMSI";
+		//LOG(WARNING) << "SubscriberRegistry::getRegistrationIP attempting lookup of NULL IMSI";
+		spdlog::warn("SubscriberRegistry::getRegistrationIP attempting lookup of NULL IMSI");
 		return NULL;
 	}
-	LOG(INFO) << "getRegistrationIP(" << IMSI << ")";
+	//LOG(INFO) << "getRegistrationIP(" << IMSI << ")";
+	spdlog::info("getRegistrationIP( {} )", IMSI);
 	return sqlQuery("ipaddr", "sip_buddies", "username", IMSI);
 }
 
@@ -660,7 +710,8 @@ char *SubscriberRegistry::getRegistrationIP(const char* IMSI)
 SubscriberRegistry::Status SubscriberRegistry::setRegTime(const char* IMSI)
 {
 	if (!IMSI) {
-		LOG(WARNING) << "SubscriberRegistry::setRegTime attempting set for NULL IMSI";
+		//LOG(WARNING) << "SubscriberRegistry::setRegTime attempting set for NULL IMSI";
+		spdlog::warn("SubscriberRegistry::setRegTime attempting set for NULL IMSI");
 		return FAILURE;
 	}
 	unsigned now = (unsigned)time(NULL);
@@ -674,14 +725,17 @@ SubscriberRegistry::Status SubscriberRegistry::setRegTime(const char* IMSI)
 SubscriberRegistry::Status SubscriberRegistry::addUser(const char* IMSI, const char* CLID)
 {
 	if (!IMSI) {
-		LOG(WARNING) << "SubscriberRegistry::addUser attempting add of NULL IMSI";
+		//LOG(WARNING) << "SubscriberRegistry::addUser attempting add of NULL IMSI";
+		spdlog::warn("SubscriberRegistry::addUser attempting add of NULL IMSI");
 		return FAILURE;
 	}
 	if (!CLID) {
-		LOG(WARNING) << "SubscriberRegistry::addUser attempting add of NULL CLID";
+		//LOG(WARNING) << "SubscriberRegistry::addUser attempting add of NULL CLID";
+		spdlog::warn("SubscriberRegistry::addUser attempting add of NULL CLID");
 		return FAILURE;
 	}
-	LOG(INFO) << "addUser(" << IMSI << "," << CLID << ")";
+	//LOG(INFO) << "addUser(" << IMSI << "," << CLID << ")";
+	spdlog::info("addUser( {}, {} )", IMSI, CLID);
 	ostringstream os;
 	os << "insert into sip_buddies (name, username, type, context, host, callerid, canreinvite, allow, dtmfmode, ipaddr, port) values (";
 	os << "\"" << IMSI << "\"";
@@ -722,10 +776,12 @@ SubscriberRegistry::Status SubscriberRegistry::addUser(const char* IMSI, const c
 char *SubscriberRegistry::mapCLIDGlobal(const char *local)
 {
 	if (!local) {
-		LOG(WARNING) << "SubscriberRegistry::mapCLIDGlobal attempting lookup of NULL local";
+		//LOG(WARNING) << "SubscriberRegistry::mapCLIDGlobal attempting lookup of NULL local";
+		spdlog::warn("SubscriberRegistry::mapCLIDGlobal attempting lookup of NULL local");
 		return NULL;
 	}
-	LOG(INFO) << "mapCLIDGlobal(" << local << ")";
+	//LOG(INFO) << "mapCLIDGlobal(" << local << ")";
+	spdlog::info("mapCLIDGlobal( {} )", local);
 	char *IMSI = getIMSI2(local);
 	if (!IMSI) return NULL;
 	char *global = getCLIDGlobal(IMSI);
@@ -742,7 +798,8 @@ SubscriberRegistry::Status SubscriberRegistry::RRLPUpdate(string name, string la
 	  err << "," <<
 	  "datetime('now')"
 	  ")";
-	LOG(INFO) << os.str();
+	//LOG(INFO) << os.str();
+	spdlog::info("{}", os.str());
 	return sqlUpdate(os.str().c_str());
 }
 
